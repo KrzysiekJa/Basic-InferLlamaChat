@@ -4,7 +4,7 @@ from typing import Any, Generator
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-
+# TODO: add settings import and usage
 TOGETHER_API_KEY = os.environ.get("TOGETHER_API_KEY", None)
 client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz")
 
