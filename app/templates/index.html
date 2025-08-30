@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Include Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Llama4Infer ChatApp</title>
+</head>
+
+<body class="bg-gray-100 h-screen">
+    <!-- Chat Container -->
+    <div class="max-w-4xl mx-auto p-4 pt-6 bg-white rounded-lg shadow-md">
+        <!-- Chat Header -->
+        <div class="flex justify-center items-center pb-2">
+            <h2 class="text-3xl font-bold text-gray-900">Llama4Infer ChatApp</h2>
+        </div>
+        <div class="flex justify-center items-center pt-2 pb-4 border-b border-gray-200">
+            <p class="ml-2 text-gray-600">Batch vs. Stream</p>
+        </div>
+        <!-- Chat Body -->
+        <div class="pt-6">
+            <!-- Batch Chat Form -->
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Batch Chat</h3>
+                <form id="batch-chat-form">
+                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Place For Your Prompt"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="my-2"></div>
+                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="flex justify-center mt-4">
+                        <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
+                    </div>
+                </form>
+                <p class="mt-2 text-gray-600" rounded-lg p-2>Batch Response:
+                    <span id="batch-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
+                </p>
+                </div>
+            <!-- Stream Chat Form -->
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Stream Chat</h3>
+                <form id="stream-chat-form">
+                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Place For Your Prompt"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="my-2"></div>
+                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="flex justify-center mt-4">
+                        <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
+                    </div>
+                </form>
+                <p class="mt-2 text-gray-600 rounded-lg p-2">Stream Response:
+                    <span id="stream-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
+                </p>
+            </div>
+        </div>
+        <!-- Chat Footer -->
+        <div class="pt-6 border-t border-gray-200 text-center">
+            <p>&copy; 2025 Llama4Infer</p>
+        </div>
+    </div>
+    <script>
+        async function handleSubmit(event, isStreaming = false) {
+            event.preventDefault()
+            const form = event.target
+            const formData = new FormData(form)
+            const userPrompt = formData.get('user-prompt')
+            const maxTokens = parseInt(formData.get('max-tokens'), 10)
+            const endpoint = isStreaming ? '/inference/stream/' : '/inference/batch/'
+            const responseContainerId = isStreaming ? 'stream-response' : 'batch-response'
+
+            if (isStreaming) {
+                document.getElementById(responseContainerId).innerText = ''
+            }
+            
+            try {
+                // TODO: Add response text formatting
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_prompt: userPrompt,
+                        max_tokens: maxTokens,
+                    }),
+                })
+                if (isStreaming) {
+                    const reader = response.body.getReader()
+                    readStream(reader, responseContainerId)
+                } else {
+                    const data = await response.text()
+                    document.getElementById(responseContainerId).innerText = data
+                }
+            } catch (err) {
+                console.error("Fetch error:", err)
+            }
+        }
+
+        async function readStream(reader, containerId) {
+            const decoder = new TextDecoder()
+
+            while (true) {
+                let result = await reader.read()
+
+                if (result.done) {
+                    break
+                }
+                const chunk = decoder.decode(result.value, {stream: true})
+                document.getElementById(containerId).innerText += chunk
+            }
+        }
+
+        document.getElementById('batch-chat-form').addEventListener('submit', (e) => {
+            handleSubmit(e)
+        })
+        document.getElementById('stream-chat-form').addEventListener('submit', (e) => {
+            handleSubmit(e, true)
+        })
+    </script>
+</body>
+
+</html>
+
