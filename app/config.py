@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class LLMSettings(BaseSettings):
     CONTEXT_WINDOW: int = 16000
-    MAX_TOKENS: int = 768
+    MAX_TOKENS: int = 128
     TEMPERATURE: float = 0.7
     MODEL: str = "meta-llama/Llama-4-Scout-17B-16E-Instruct"
     TOGETHER_API_KEY: str  # will be read from env variable
@@ -12,6 +12,7 @@ class LLMSettings(BaseSettings):
 
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
+    OUTPUT_MAX_TOKENS: int = 768
 
     class Config:
         case_sensitive = True
