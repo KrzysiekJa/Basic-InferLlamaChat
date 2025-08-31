@@ -58,6 +58,24 @@
                     <span id="stream-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
                 </p>
             </div>
+            <!-- Weather Chat Form -->
+            <div class="bg-gray-100 p-4 rounded-lg mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Weather Chat</h3>
+                <p class="text-sm text-gray-900 mb-1 p-2">BONUS powered by OpenWeatherMap</p>
+                <form id="weather-chat-form">
+                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Your prompt about weather, e.g. Is it sunny in Kyoto, Japan?"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="my-2"></div>
+                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
+                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
+                    <div class="flex justify-center mt-4">
+                        <button type="submit"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
+                    </div>
+                </form>
+                <p class="mt-2 text-gray-600 rounded-lg p-2">Weather Description:
+                    <span id="weather-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
+            </div>
         </div>
         <!-- Chat Footer -->
         <div class="pt-6 border-t border-gray-200 text-center">
@@ -65,16 +83,16 @@
         </div>
     </div>
     <script>
-        async function handleSubmit(event, isStreaming = false) {
+        async function handleSubmit(event, formType = "batch") {
             event.preventDefault()
             const form = event.target
             const formData = new FormData(form)
             const userPrompt = formData.get('user-prompt')
             const maxTokens = parseInt(formData.get('max-tokens'), 10)
-            const endpoint = isStreaming ? '/inference/stream/' : '/inference/batch/'
-            const responseContainerId = isStreaming ? 'stream-response' : 'batch-response'
-
-            if (isStreaming) {
+            const endpoint = '/inference/' + formType + '/'
+            const responseContainerId = formType + '-response'
+            console.log(endpoint, responseContainerId)
+            if (formType === "stream") {
                 document.getElementById(responseContainerId).innerText = ''
             }
             
@@ -90,7 +108,7 @@
                         max_tokens: maxTokens,
                     }),
                 })
-                if (isStreaming) {
+                if (formType === "stream") {
                     const reader = response.body.getReader()
                     readStream(reader, responseContainerId)
                 } else {
@@ -120,7 +138,10 @@
             handleSubmit(e)
         })
         document.getElementById('stream-chat-form').addEventListener('submit', (e) => {
-            handleSubmit(e, true)
+            handleSubmit(e, "stream")
+        })
+        document.getElementById('weather-chat-form').addEventListener('submit', (e) => {
+            handleSubmit(e, "weather")
         })
     </script>
 </body>

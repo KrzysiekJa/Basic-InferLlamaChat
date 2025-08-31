@@ -1,11 +1,12 @@
 import os
 import json
 from typing import Any, Generator
+from httpx import Client
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
-# TODO: add settings import and usage
 TOGETHER_API_KEY = os.environ.get("TOGETHER_API_KEY", None)
+OWM_API_KEY = os.environ.get("OWM_API_KEY", None)  # openweathermap api key
 client = OpenAI(api_key=TOGETHER_API_KEY, base_url="https://api.together.xyz")
 
 
@@ -62,14 +63,13 @@ def get_inference_schema(
             {"role": "user", "content": user_prompt},
         ],
         model="meta-llama/Llama-4-Scout-17B-16E-Instruct",
-        max_tokens=512,
+        max_tokens=128,
     )
 
     create_user = json.loads(chat_completion.choices[0].message.content)
     return create_user
 
 
-# TODO: add external weather service functionality
 def get_current_weather(location: str, unit: str = "celsius") -> str:
     if "paris" in location.lower():
         return json.dumps({"location": "Paris", "temperature": 70})
@@ -81,12 +81,46 @@ def get_current_weather(location: str, unit: str = "celsius") -> str:
         return json.dumps({"location": location, "temperature": "unknown"})
 
 
+def get_current_weather_from_owm(
+    location: str = "New York, US", unit: str = "metric"
+) -> str:
+    BASE_URL = "https://api.openweathermap.org/data/2.5/weather?"
+    url = f"{BASE_URL}q={location}&appid={OWM_API_KEY}&units={unit}"
+
+    with Client() as client:
+        response = client.get(url, timeout=10)
+
+    if response.status_code == 200:
+        data = response.json()
+        return json.dumps(
+            {
+                "location": data["name"],
+                "country": data["sys"]["country"],
+                "temperature": data["main"]["temp"],
+                "humidity": data["main"]["humidity"],
+                "pressure": data["main"]["pressure"],
+                "feels_like": data["main"]["feels_like"],
+                "wind_speed": data["wind"]["speed"],
+                "description": data["weather"][0]["description"].capitalize(),
+                "temperature_unit": "°C"
+                if unit == "metric"
+                else "°F"
+                if unit == "imperial"
+                else "K",
+                "speed_unit": "m/s" if unit == "metric" else "mph",
+            }
+        )
+    return json.dumps(
+        {"location": location, "temperature": "unknown", "description": "unknown"}
+    )
+
+
 def run_inference_tool(user_prompt: str) -> Any:
     tools = [
         {
             "type": "function",
             "function": {
-                "name": "get_current_weather",
+                "name": "get_current_weather_from_owm",
                 "description": "Get the current weather in a given location",
                 "parameters": {
                     "type": "object",
@@ -95,7 +129,7 @@ def run_inference_tool(user_prompt: str) -> Any:
                             "type": "string",
                             "description": "The city and state, e.g. San Francisco, CA",
                         },
-                        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                        "unit": {"type": "string", "enum": ["metric", "imperial"]},
                     },
                     "required": ["location"],
                 },
@@ -113,7 +147,7 @@ def run_inference_tool(user_prompt: str) -> Any:
     chat_completion = client.chat.completions.create(
         messages=messages,
         model="meta-llama/Llama-4-Scout-17B-16E-Instruct",
-        max_tokens=512,
+        max_tokens=128,
         tools=tools,
         tool_choice="auto",
     )
@@ -125,9 +159,9 @@ def run_inference_tool(user_prompt: str) -> Any:
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
 
-            if function_name == "get_current_weather":
-                function_response = get_current_weather(
-                    function_args.get("location"), function_args.get("unit", "celsius")
+            if function_name == "get_current_weather_from_owm":
+                function_response = get_current_weather_from_owm(
+                    function_args.get("location"), function_args.get("unit", "metric")
                 )
                 messages.append(
                     {
@@ -159,6 +193,8 @@ def main():
         user_prompt="Create a user named Jane Doe, who lives at 97, Smith Street."
     )
     print(result)
+
+    print(get_current_weather_from_owm("New York"))
 
     result = run_inference_tool(
         "What is the temperature in New York and Paris and London"
