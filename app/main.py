@@ -53,7 +53,7 @@ async def run_chat_inference_batch(
         raise HTTPException(status_code=404, detail="Chat completion is empty.")
 
     tokens = chat_completion.choices[0].message.content.split()
-    return " ".join(tokens[: settings.MAX_TOKENS_CHAT_OUTPUT]).strip('"')
+    return " ".join(tokens[: settings.CHAT_OUTPUT_MAX_TOKENS]).strip('"')
 
 
 async def stream_generator(
@@ -68,7 +68,7 @@ async def stream_generator(
         content = chunk.choices[0].delta.content
         tokens_count += len(content.split())
 
-        if settings.MAX_TOKENS_CHAT_OUTPUT <= tokens_count:
+        if settings.CHAT_OUTPUT_MAX_TOKENS <= tokens_count:
             break
 
         yield content
