@@ -91,7 +91,7 @@
             const maxTokens = parseInt(formData.get('max-tokens'), 10)
             const endpoint = '/inference/' + formType + '/'
             const responseContainerId = formType + '-response'
-            console.log(endpoint, responseContainerId)
+            
             if (formType === "stream") {
                 document.getElementById(responseContainerId).innerText = ''
             }
@@ -105,6 +105,7 @@
                     },
                     body: JSON.stringify({
                         user_prompt: userPrompt,
+              // TODO: Add max tokens validation
                         max_tokens: maxTokens,
                     }),
                 })
