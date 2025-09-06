@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- TODO Showdown.js import problems-->
+    <script type="text/javascript" src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Llama4Infer ChatApp</title>
@@ -17,65 +19,139 @@
         <div class="flex justify-center items-center pb-2">
             <h2 class="text-3xl font-bold text-gray-900">Llama4Infer ChatApp</h2>
         </div>
-        <div class="flex justify-center items-center pt-2 pb-4 border-b border-gray-200">
+        <div
+        class="flex justify-center items-center pt-2 pb-4 border-b border-gray-200"
+        >
             <p class="ml-2 text-gray-600">Batch vs. Stream</p>
         </div>
         <!-- Chat Body -->
         <div class="pt-6">
-            <!-- Batch Chat Form -->
-            <div class="bg-gray-100 p-4 rounded-lg mb-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Batch Chat</h3>
-                <form id="batch-chat-form">
-                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Place For Your Prompt"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="my-2"></div>
-                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="flex justify-center mt-4">
-                        <button type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
-                    </div>
-                </form>
-                <p class="mt-2 text-gray-600" rounded-lg p-2>Batch Response:
-                    <span id="batch-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
-                </p>
-                </div>
-            <!-- Stream Chat Form -->
-            <div class="bg-gray-100 p-4 rounded-lg mb-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Stream Chat</h3>
-                <form id="stream-chat-form">
-                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Place For Your Prompt"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="my-2"></div>
-                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="flex justify-center mt-4">
-                        <button type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
-                    </div>
-                </form>
-                <p class="mt-2 text-gray-600 rounded-lg p-2">Stream Response:
-                    <span id="stream-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
-                </p>
+        <!-- Batch Chat Form -->
+        <div class="bg-gray-100 p-4 rounded-lg mb-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Batch Chat</h3>
+            <form id="batch-chat-form">
+            <input
+                type="text"
+                id="user-prompt"
+                name="user-prompt"
+                minlength="1"
+                maxlength="1024"
+                placeholder="Place For Your Prompt"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="my-2"></div>
+            <input
+                type="number"
+                id="max-tokens"
+                name="max-tokens"
+                min="{{ minOutTokens }}"
+                max="{{ maxOutTokens }}"
+                placeholder="Limit Of Output Tokens"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="flex justify-center mt-4">
+                <button
+                type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                >
+                Send
+                </button>
             </div>
-            <!-- Weather Chat Form -->
-            <div class="bg-gray-100 p-4 rounded-lg mb-4">
-                <h3 class="text-lg font-bold text-gray-900">Weather Chat</h3>
-                <p class="text-sm text-gray-900 mb-1 p-2">BONUS powered by OpenWeatherMap</p>
-                <form id="weather-chat-form">
-                    <input type="text" id="user-prompt" name="user-prompt" placeholder="Your prompt about weather, e.g. Is it sunny in Kyoto, Japan?"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="my-2"></div>
-                    <input type="number" id="max-tokens" name="max-tokens" placeholder="Limit Of Output Tokens"
-                        class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600">
-                    <div class="flex justify-center mt-4">
-                        <button type="submit"
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
-                    </div>
-                </form>
-                <p class="mt-2 text-gray-600 rounded-lg p-2">Weather Description:
-                    <span id="weather-response" class="block mt-2 text-gray-700" style="white-space: pre-line;"></span>
+            </form>
+            <p class="mt-2 text-gray-500" rounded-lg p-2>
+            Batch Response:
+            <span
+                id="batch-response"
+                class="block mt-2 text-gray-900"
+                style="white-space: pre-line"
+            ></span>
+            </p>
+        </div>
+        <!-- Stream Chat Form -->
+        <div class="bg-gray-100 p-4 rounded-lg mb-4">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Stream Chat</h3>
+            <form id="stream-chat-form">
+            <input
+                type="text"
+                id="user-prompt"
+                name="user-prompt"
+                minlength="1"
+                maxlength="1024"
+                placeholder="Place For Your Prompt"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="my-2"></div>
+            <input
+                type="number"
+                id="max-tokens"
+                name="max-tokens"
+                min="{{ minOutTokens }}"
+                max="{{ maxOutTokens }}"
+                placeholder="Limit Of Output Tokens"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="flex justify-center mt-4">
+                <button
+                type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                >
+                Send
+                </button>
             </div>
+            </form>
+            <p class="mt-2 text-gray-500 rounded-lg p-2">
+            Stream Response:
+            <span
+                id="stream-response"
+                class="block mt-2 text-gray-900"
+                style="white-space: pre-line"
+            ></span>
+            </p>
+        </div>
+        <!-- Weather Chat Form -->
+        <div class="bg-gray-100 p-4 rounded-lg mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Weather Chat</h3>
+            <p class="text-sm text-gray-900 mb-1 p-2">
+            BONUS powered by <span style="font-style: italic">OpenWeatherMap</span>
+            </p>
+            <form id="weather-chat-form">
+            <input
+                type="text"
+                id="user-prompt"
+                name="user-prompt"
+                minlength="1"
+                maxlength="1024"
+                placeholder="Your prompt about weather, e.g. Is it sunny in Kyoto, Japan?"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="my-2"></div>
+            <input
+                type="number"
+                id="max-tokens"
+                name="max-tokens"
+                min="{{ minOutTokens }}"
+                max="{{ maxOutTokens }}"
+                placeholder="Limit Of Output Tokens"
+                class="w-full p-2 pl-10 text-sm text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-600"
+            />
+            <div class="flex justify-center mt-4">
+                <button
+                type="submit"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                >
+                Send
+                </button>
+            </div>
+            </form>
+            <p class="mt-2 text-gray-500 rounded-lg p-2">
+            Weather Description:
+            <span
+                id="weather-response"
+                class="block mt-2 text-gray-900"
+                style="white-space: pre-line"
+            ></span>
+            </p>
+        </div>
         </div>
         <!-- Chat Footer -->
         <div class="pt-6 border-t border-gray-200 text-center">
@@ -97,7 +173,6 @@
             }
             
             try {
-                // TODO: Add response text formatting
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
@@ -105,16 +180,18 @@
                     },
                     body: JSON.stringify({
                         user_prompt: userPrompt,
-              // TODO: Add max tokens validation
                         max_tokens: maxTokens,
                     }),
                 })
                 if (formType === "stream") {
-                    const reader = response.body.getReader()
+                    const reader = await response.body.getReader()
                     readStream(reader, responseContainerId)
                 } else {
-                    const data = await response.text()
-                    document.getElementById(responseContainerId).innerText = data
+                    const text = await response.text()
+                    const converter = new showdown.Converter()
+                    const html = converter.makeHtml(text.slice(1, -1))
+                    const fixedHtml = html.replace(/\\n/g, "<br>").replace(/<br>\*/g, "<br> -")
+                    document.getElementById(responseContainerId).innerHTML = fixedHtml
                 }
             } catch (err) {
                 console.error("Fetch error:", err)

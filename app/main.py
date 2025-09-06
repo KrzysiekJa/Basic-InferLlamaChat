@@ -5,6 +5,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 
+from app.config import settings
 from inference.controller import infer_router
 
 
@@ -23,7 +24,11 @@ async def root():
 
 @app.get("/ui", status_code=status.HTTP_200_OK)
 async def ui(request: Request):
-    return TEMPLATES.TemplateResponse("index.html", {"request": request})
+    return TEMPLATES.TemplateResponse("index.html", {
+            "request": request,
+            "minOutTokens": settings.chat.OUTPUT_MIN_TOKENS,
+            "maxOutTokens": settings.chat.OUTPUT_MAX_TOKENS,
+        },)
 
 
 if "__main__" == __name__:

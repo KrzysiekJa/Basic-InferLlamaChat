@@ -23,7 +23,7 @@ async def stream_generator(
         content = chunk.choices[0].delta.content
         tokens_count += len(content.split())
 
-        if settings.CHAT_OUTPUT_MAX_TOKENS <= tokens_count:
+        if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
             break
 
         yield content

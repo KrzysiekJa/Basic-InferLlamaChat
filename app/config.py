@@ -15,11 +15,15 @@ class WeatherAPISettings(BaseSettings):
     BASE_URL: str = "https://api.openweathermap.org/data/2.5/weather?"
     MAX_TOKENS: int = 128
 
+class ChatSettings(BaseSettings):
+    OUTPUT_MIN_TOKENS: int = 0
+    OUTPUT_MAX_TOKENS: int = 768
+
 
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
     weather_api: WeatherAPISettings = WeatherAPISettings()
-    CHAT_OUTPUT_MAX_TOKENS: int = 768
+    chat: ChatSettings = ChatSettings()
 
     class Config:
         case_sensitive = True

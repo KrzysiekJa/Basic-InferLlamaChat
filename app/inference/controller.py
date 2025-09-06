@@ -21,7 +21,10 @@ async def run_chat_inference_batch(
 ):
     chat_completion = await llm_client.chat.completions.create(
         messages=[
-            {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
+            {
+                "role": "system",
+                "content": CUSTOM_SYSTEM_PROMPT,
+            },
             {
                 "role": "user",
                 "content": chat_input.user_prompt,
@@ -37,8 +40,7 @@ async def run_chat_inference_batch(
             status_code=status.HTTP_404_NOT_FOUND, detail="Chat completion is empty."
         )
 
-    tokens = chat_completion.choices[0].message.content.split()
-    return " ".join(tokens[: settings.CHAT_OUTPUT_MAX_TOKENS]).strip()
+    return chat_completion.choices[0].message.content
 
 
 @infer_router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
@@ -112,5 +114,4 @@ async def run_chat_inference_weather(
         max_completion_tokens=weather_input.max_tokens,
     )
 
-    tokens = enriched_response.choices[0].message.content.split()
-    return " ".join(tokens[: settings.CHAT_OUTPUT_MAX_TOKENS]).strip()
+    return enriched_response.choices[0].message.content
