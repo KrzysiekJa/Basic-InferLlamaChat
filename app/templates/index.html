@@ -207,7 +207,8 @@
                 if (result.done) {
                     break
                 }
-                const chunk = decoder.decode(result.value, {stream: true})
+                let chunk = decoder.decode(result.value, {stream: true})
+                chunk = chunk.replace(/\*\*/g, "")
                 document.getElementById(containerId).innerText += chunk
             }
         }
