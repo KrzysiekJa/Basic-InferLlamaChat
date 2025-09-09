@@ -13,8 +13,9 @@ The project is open source and can be found on [GitHub](https://github.com/Krzys
 4. Create a virtual environment: `uv venv .venv`
 5. Activate the virtual environment (`Linux/macOS`): `source .venv/bin/activate`
 6. Install dependencies using command: `uv sync --locked --all-extras`
-7. Create a API key for Together API on [https://together.xyz](https://together.xyz) and export it as an environment variable: `export TOGETHER_API_KEY=<your api key>`
-8. Run the application: `PYTHONPATH=. python app/main.py`
+7. Create a API key for TogetherAI API on [https://together.xyz](https://together.xyz) and export it as an environment variable: `export TOGETHER_API_KEY=<your openai api key>`
+8. Create a API key for OpenWeatherMap API on [https://openweathermap.org](https://openweathermap.org) and export it as an environment variable: `export OWM_API_KEY=<your owm api key>`, if you intend to use weather chatbot
+9. Run the application: `PYTHONPATH=. python app/main.py`
 
 \* For `Windows` users:
 
