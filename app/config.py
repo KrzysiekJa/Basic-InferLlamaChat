@@ -10,9 +10,20 @@ class LLMSettings(BaseSettings):
     BASE_URL: str = "https://api.together.xyz"
 
 
+class WeatherAPISettings(BaseSettings):
+    OWM_API_KEY: str  # openweathermap api key
+    BASE_URL: str = "https://api.openweathermap.org/data/2.5/weather?"
+    MAX_TOKENS: int = 128
+
+class ChatSettings(BaseSettings):
+    OUTPUT_MIN_TOKENS: int = 0
+    OUTPUT_MAX_TOKENS: int = 768
+
+
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
-    OUTPUT_MAX_TOKENS: int = 768
+    weather_api: WeatherAPISettings = WeatherAPISettings()
+    chat: ChatSettings = ChatSettings()
 
     class Config:
         case_sensitive = True
