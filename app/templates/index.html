@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- TODO Showdown.js import problems-->
-    <script type="text/javascript" src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Llama4Infer ChatApp</title>
@@ -158,6 +156,7 @@
             <p>&copy; 2025 Llama4Infer</p>
         </div>
     </div>
+    <script type="text/javascript" src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
     <script>
         async function handleSubmit(event, formType = "batch") {
             event.preventDefault()
@@ -185,17 +184,21 @@
                 })
                 if (formType === "stream") {
                     const reader = await response.body.getReader()
-                    readStream(reader, responseContainerId)
+                    await readStream(reader, responseContainerId)
                 } else {
                     const text = await response.text()
-                    const converter = new showdown.Converter()
-                    const html = converter.makeHtml(text.slice(1, -1))
-                    const fixedHtml = html.replace(/\\n/g, "<br>").replace(/<br>\*/g, "<br> -")
-                    document.getElementById(responseContainerId).innerHTML = fixedHtml
+                    setBatchText(text, responseContainerId)
                 }
             } catch (err) {
                 console.error("Fetch error:", err)
             }
+        }
+
+        function setBatchText(text, containerId) {
+            const converter = new showdown.Converter()
+            const html = converter.makeHtml(text.slice(1, -1))
+            const fixedHtml = html.replace(/\\n/g, "<br>")
+            document.getElementById(containerId).innerHTML = fixedHtml
         }
 
         async function readStream(reader, containerId) {
