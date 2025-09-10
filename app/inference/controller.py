@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Request, Depends, status
 from openai import AsyncOpenAI
 
+from app.rate_limiting import limiter
 from app.inference import deps
 from app.inference.model import ChatInput, WeatherInput
 from app.inference.service import (
@@ -14,8 +15,11 @@ infer_router = APIRouter(prefix="/inference", tags=["inference"])
 
 
 @infer_router.post("/batch", status_code=status.HTTP_200_OK, response_model=str)
+@limiter.limit("5/minute")
 async def run_chat_inference_batch(
-    chat_input: ChatInput, llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client)
+    request: Request,
+    chat_input: ChatInput,
+    llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
     return await get_chat_inference_batch(
         chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
@@ -23,8 +27,11 @@ async def run_chat_inference_batch(
 
 
 @infer_router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
+@limiter.limit("5/minute")
 async def run_chat_inference_stream(
-    chat_input: ChatInput, llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client)
+    request: Request,
+    chat_input: ChatInput,
+    llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
     return await get_chat_inference_stream(
         chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
@@ -32,7 +39,9 @@ async def run_chat_inference_stream(
 
 
 @infer_router.post("/weather", status_code=status.HTTP_200_OK, response_model=str)
+@limiter.limit("3/minute")
 async def run_chat_inference_weather(
+    request: Request,
     weather_input: WeatherInput,
     llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
