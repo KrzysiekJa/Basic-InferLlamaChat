@@ -6,15 +6,15 @@ from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 
 from app.config import settings
-from inference.controller import infer_router
-
+from app.api import register_routes
 
 BASE_PATH = Path(__file__).resolve().parent
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 
 
 app = FastAPI(title="Llama4Infer ChatApp")
-app.include_router(infer_router)
+
+register_routes(app)
 
 
 @app.get("/", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
