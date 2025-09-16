@@ -5,6 +5,12 @@ The main focus of this project is on inference and a basic LLM web application s
 The project is currently in development and is not intended for production use.
 The project is open source and can be found on [GitHub](https://github.com/KrzysiekJa/basic-inferllamachat).
 
+## Demo video
+
+```html
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kwFbHkZnCVg?si=yNzSoBCv-w7Na9WX" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+```
+
 ## Setup instructions
 
 1. Clone the repository: `git clone https://github.com/KrzysiekJa/basic-inferllamachat.git`
