@@ -197,7 +197,7 @@
         function setBatchText(text, containerId) {
             const converter = new showdown.Converter()
             const html = converter.makeHtml(text.slice(1, -1))
-            const fixedHtml = html.replace(/\\n/g, "<br>")
+            const fixedHtml = html.replace(/\\n/g, "<br>").replace(/\\/g, "")
             document.getElementById(containerId).innerHTML = fixedHtml
         }
 
@@ -211,7 +211,7 @@
                     break
                 }
                 let chunk = decoder.decode(result.value, {stream: true})
-                chunk = chunk.replace(/\*\*/g, "")
+                chunk = chunk.replace(/\*\*/g, "").replace(/\\/g, "")
                 document.getElementById(containerId).innerText += chunk
             }
         }
