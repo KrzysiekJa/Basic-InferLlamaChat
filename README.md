@@ -7,9 +7,7 @@ The project is open source and can be found on [GitHub](https://github.com/Krzys
 
 ## Demo video
 
-```html
-<iframe width="560" height="315" src="https://www.youtube.com/embed/kwFbHkZnCVg?si=yNzSoBCv-w7Na9WX" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-```
+https://github.com/user-attachments/assets/75d0434e-166e-4a69-97d8-10a98a00bc60
 
 ## Setup instructions
 
