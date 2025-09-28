@@ -12,7 +12,7 @@ from app.tools.functions import get_current_weather_from_owm
 
 async def get_chat_inference_batch(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
-):
+) -> str:
     chat_completion = await llm_client.chat.completions.create(
         messages=[
             {
@@ -39,7 +39,7 @@ async def get_chat_inference_batch(
 
 async def get_chat_inference_stream(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
-):
+) -> str:
     response = await llm_client.chat.completions.create(
         messages=[
             {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
@@ -61,7 +61,7 @@ async def get_chat_inference_stream(
 
 async def get_chat_inference_weather(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
-):
+) -> str:
     tools = [GET_CURRENT_WEATHER_FROM_OWM]
     messages = [
         {

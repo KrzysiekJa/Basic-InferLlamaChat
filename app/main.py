@@ -16,7 +16,7 @@ BASE_PATH = Path(__file__).resolve().parent
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 
 
-app = FastAPI(title="Llama4Infer ChatApp")
+app: FastAPI = FastAPI(title="Llama4Infer ChatApp")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 register_routes(app)
