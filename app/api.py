@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from inference.controller import infer_router
+from app.inference.controllers import infer_router
 
 
 def register_routes(app: FastAPI) -> None:
