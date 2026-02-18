@@ -3,8 +3,8 @@ from openai import AsyncOpenAI
 
 from app.rate_limiting import limiter
 from app.inference import deps
-from app.inference.models import ChatInput, WeatherInput
-from app.inference.services import (
+from app.inference.model import ChatInput, WeatherInput
+from app.inference.service import (
     get_chat_inference_batch,
     get_chat_inference_stream,
     get_chat_inference_weather,
