@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 
 from app.config import settings
-from app.inference import deps
+from app.predict import deps
 from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
 from app.tools.definitions import GET_CURRENT_WEATHER_FROM_OWM
 from app.tools.functions import get_current_weather_from_owm
@@ -78,6 +78,11 @@ async def get_chat_inference_weather(
         tools=tools,
         tool_choice="required",
     )
+    
+    if not chat_completion:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Chat completion is empty."
+        )
 
     tool_calls = chat_completion.choices[0].message.tool_calls
 
