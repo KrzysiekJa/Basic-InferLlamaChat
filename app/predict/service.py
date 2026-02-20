@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 
 from app.config import settings
-from app.inference import deps
+from app.predict import deps
 from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
 from app.tools.definitions import GET_CURRENT_WEATHER_FROM_OWM
 from app.tools.functions import get_current_weather_from_owm

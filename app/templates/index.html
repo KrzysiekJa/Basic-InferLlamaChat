@@ -164,7 +164,7 @@
             const formData = new FormData(form)
             const userPrompt = formData.get('user-prompt')
             const maxTokens = parseInt(formData.get('max-tokens'), 10)
-            const endpoint = '/inference/' + formType + '/'
+            const endpoint = '/predict/' + formType + '/'
             const responseContainerId = formType + '-response'
             
             if (formType === "stream") {

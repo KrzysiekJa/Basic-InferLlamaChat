@@ -2,19 +2,19 @@ from fastapi import APIRouter, Request, Depends, status
 from openai import AsyncOpenAI
 
 from app.rate_limiting import limiter
-from app.inference import deps
-from app.inference.model import ChatInput, WeatherInput
-from app.inference.service import (
+from app.predict import deps
+from app.predict.model import ChatInput, WeatherInput
+from app.predict.service import (
     get_chat_inference_batch,
     get_chat_inference_stream,
     get_chat_inference_weather,
 )
 
 
-infer_router = APIRouter(prefix="/inference", tags=["inference"])
+predict_router = APIRouter(prefix="/predict", tags=["predict", "inference"])
 
 
-@infer_router.post("/batch", status_code=status.HTTP_200_OK, response_model=str)
+@predict_router.post("/batch", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("5/minute")
 async def run_chat_inference_batch(
     request: Request,
@@ -26,7 +26,7 @@ async def run_chat_inference_batch(
     )
 
 
-@infer_router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
+@predict_router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("5/minute")
 async def run_chat_inference_stream(
     request: Request,
@@ -38,7 +38,7 @@ async def run_chat_inference_stream(
     )
 
 
-@infer_router.post("/weather", status_code=status.HTTP_200_OK, response_model=str)
+@predict_router.post("/weather", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("3/minute")
 async def run_chat_inference_weather(
     request: Request,
