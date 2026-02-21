@@ -78,6 +78,11 @@ async def get_chat_inference_weather(
         tools=tools,
         tool_choice="required",
     )
+    
+    if not chat_completion:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Chat completion is empty."
+        )
 
     tool_calls = chat_completion.choices[0].message.tool_calls
 
