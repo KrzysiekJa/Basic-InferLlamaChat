@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+
+BASE_PATH = Path(__file__).resolve().parent
 
 
 class LLMSettings(BaseSettings):

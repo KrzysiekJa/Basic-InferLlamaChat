@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -9,11 +7,10 @@ from slowapi.errors import RateLimitExceeded
 
 from app.logger import init_logging, logger
 from app.rate_limiting import limiter
-from app.config import settings
+from app.config import settings, BASE_PATH
 from app.api import register_routes
 
 
-BASE_PATH = Path(__file__).resolve().parent
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 
 
