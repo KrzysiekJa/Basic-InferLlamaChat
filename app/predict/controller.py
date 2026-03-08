@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Request, Depends, status
+from fastapi import APIRouter, Request, Depends, status, HTTPException
 from openai import AsyncOpenAI
 
 from app.rate_limiting import limiter
 from app.predict import deps
-from app.predict.model import ChatInput, WeatherInput
+from app.predict.schemas import ChatInput, WeatherInput
 from app.predict.service import (
     get_chat_inference_batch,
     get_chat_inference_stream,
     get_chat_inference_weather,
 )
+from app.logger import logger
 
 
 predict_router = APIRouter(prefix="/predict", tags=["predict", "inference"])
@@ -25,7 +26,8 @@ async def run_chat_inference_batch(
         model_response = await get_chat_inference_batch(
             chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
         )
-    except HTTPException exc:
+    except HTTPException as exc:
+        logger.error(f"Error occured during batch inference: {exc.detail}")
         raise exc
 
     return model_response
@@ -56,7 +58,8 @@ async def run_chat_inference_weather(
             weather_input.max_tokens,
             llm_client=llm_client,
         )
-    except HTTPException exc:
+    except HTTPException as exc:
+        logger.error(f"Error occured during weather inference: {exc.detail}")
         raise exc
 
     return model_response

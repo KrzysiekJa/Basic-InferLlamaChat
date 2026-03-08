@@ -3,12 +3,14 @@ from openai import AsyncOpenAI
 import contextlib
 
 from app.config import settings
+from app.logger import logger
 
 
 async def get_llm_client() -> AsyncGenerator[AsyncOpenAI, None]:
     client = AsyncOpenAI(
-        api_key=settings.llm.TOGETHER_API_KEY, base_url=settings.llm.BASE_URL
+        api_key=settings.llm.OPENAI_API_KEY, base_url=settings.llm.BASE_URL
     )
+    logger.info("LLM client initialized successfully.")
     yield client
 
 
