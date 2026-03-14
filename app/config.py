@@ -11,6 +11,7 @@ class LLMSettings(BaseSettings):
     MAX_TOKENS: int = 128
     TEMPERATURE: float = 0.7
     MODEL: str = "openai/gpt-5-nano" # "meta-llama/Llama-4-Scout-17B-16E-Instruct"
+    # TOGETHER_API_KEY: str  # will be read from env variable
     OPENAI_API_KEY: str  # will be read from env variable
     BASE_URL: str = "https://api.openai.com"
 
@@ -27,6 +28,7 @@ class ChatSettings(BaseSettings):
 
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
+    # TODO: fix the key error
     weather_api: WeatherAPISettings = WeatherAPISettings()
     chat: ChatSettings = ChatSettings()
 

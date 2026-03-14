@@ -5,6 +5,15 @@ from app.config import settings
 
 
 def get_current_weather_from_owm(location: str, unit_sys: str = "metric") -> str:
+    """Get current weather information for a given location.
+
+    Args:
+        location (str): The location for which to retrieve weather information.
+        unit_sys (str, optional): The unit system for the weather data. Defaults to "metric".
+
+    Returns:
+        str: A JSON string containing the weather information.
+    """
     base_url, api_key = settings.weather_api.BASE_URL, settings.weather_api.OWM_API_KEY
     url = f"{base_url}q={location}&appid={api_key}&units={unit_sys}"
     response = requests.get(url, timeout=10)
