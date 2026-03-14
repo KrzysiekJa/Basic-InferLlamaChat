@@ -23,13 +23,13 @@ async def stream_generator(
         # Added extra `with` block for safety reasons - for generator cleanup.
         # It awaits generator's `aclose` method on the way out.
         async for chunk in resp:
-            if not chunk.choices:
+            if not chunk.type == "response.completed":
                 break
 
-            content = chunk.choices[0].delta.content
+            content = chunk.delta
             tokens_count += len(content.split())
 
             if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
                 break
 
-                yield content
+            yield content

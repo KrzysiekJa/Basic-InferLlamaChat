@@ -13,8 +13,8 @@ from app.tools.functions import get_current_weather_from_owm
 async def get_chat_inference_batch(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
 ) -> str:
-    chat_completion = await llm_client.chat.completions.create(
-        messages=[
+    response = await llm_client.responses.create(
+        input=[
             {
                 "role": "system",
                 "content": CUSTOM_SYSTEM_PROMPT,
@@ -25,23 +25,23 @@ async def get_chat_inference_batch(
             },
         ],
         model=settings.llm.MODEL,
-        max_completion_tokens=max_tokens,
+        max_output_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,
     )
 
-    if not chat_completion:
+    if not response:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Chat completion is empty."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
         )
 
-    return chat_completion.choices[0].message.content
+    return response.output_text
 
 
 async def get_chat_inference_stream(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
 ) -> str:
-    response = await llm_client.chat.completions.create(
-        messages=[
+    response = await llm_client.responses.stream(
+        input=[
             {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
             {
                 "role": "user",
@@ -49,9 +49,8 @@ async def get_chat_inference_stream(
             },
         ],
         model=settings.llm.MODEL,
-        max_completion_tokens=max_tokens,
+        max_output_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,
-        stream=True,
     )
 
     return StreamingResponse(
@@ -71,43 +70,47 @@ async def get_chat_inference_weather(
         {"role": "user", "content": user_prompt},
     ]
 
-    chat_completion = await llm_client.chat.completions.create(
-        messages=messages,
+    response = await llm_client.responses.create(
+        input=messages,
         model=settings.llm.MODEL,
-        max_completion_tokens=settings.weather_api.MAX_TOKENS,
+        max_output_tokens=settings.weather_api.MAX_TOKENS,
         tools=tools,
         tool_choice="required",
     )
     
-    if not chat_completion:
+    if not response:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Chat completion is empty."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
         )
 
-    tool_calls = chat_completion.choices[0].message.tool_calls
+    tool_calls = response.output
 
-    if tool_calls:
-        for tool_call in tool_calls:
-            function_name = tool_call.function.name
-            function_args = json.loads(tool_call.function.arguments)
+    if not tool_calls:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Tool calls response is empty."
+        )
+        
+    for tool_call in tool_calls:
+        function_name = tool_call.name
+        function_args = json.loads(tool_call.arguments)
 
-            if function_name == "get_current_weather_from_owm":
-                function_response = get_current_weather_from_owm(
-                    function_args.get("location"), function_args.get("unit", "metric")
-                )
-                messages.append(
-                    {
-                        "toll_call_id": tool_call.id,
-                        "role": "tool",
-                        "name": function_name,
-                        "content": function_response,
-                    }
-                )
+        if function_name == "get_current_weather_from_owm":
+            result = get_current_weather_from_owm(
+                function_args.get("location"), function_args.get("unit", "metric")
+            )
+            messages.append(
+                {
+                    "toll_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "output": str(result),
+                }
+            )
 
-    enriched_response = await llm_client.chat.completions.create(
-        messages=messages,
+    enriched_response = await llm_client.responses.create(
+        input=messages,
         model=settings.llm.MODEL,
-        max_completion_tokens=max_tokens,
+        max_output_tokens=max_tokens,
     )
 
-    return enriched_response.choices[0].message.content
+    return enriched_response.output_text
