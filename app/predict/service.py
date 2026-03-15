@@ -77,35 +77,31 @@ async def get_chat_inference_weather(
         tools=tools,
         tool_choice="required",
     )
-    
-    if not response:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
-        )
+    response_output = response.output
 
-    tool_calls = response.output
-
-    if not tool_calls:
+    if not response_output:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Tool calls response is empty."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
         )
         
-    for tool_call in tool_calls:
-        function_name = tool_call.name
-        function_args = json.loads(tool_call.arguments)
-
-        if function_name == "get_current_weather_from_owm":
-            result = get_current_weather_from_owm(
-                function_args.get("location"), function_args.get("unit", "metric")
-            )
-            messages.append(
-                {
-                    "toll_call_id": tool_call.id,
-                    "role": "tool",
-                    "name": function_name,
-                    "output": str(result),
-                }
-            )
+    for item in response_output:
+        item_name = item.name
+        
+        if item.type != "function_call" or item_name != "get_current_weather_from_owm":
+            continue
+        
+        args = json.loads(item.arguments)
+        result = get_current_weather_from_owm(
+            args.get("location"), args.get("unit", "metric")
+        )
+        messages.append(
+            {
+                "call_id": item.call_id,
+                "type": "function_call_output",
+                "name": item_name,
+                "output": str(result),
+            }
+        )
 
     enriched_response = await llm_client.responses.create(
         input=messages,

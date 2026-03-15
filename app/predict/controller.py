@@ -12,10 +12,10 @@ from app.predict.service import (
 from app.logger import logger
 
 
-predict_router = APIRouter(prefix="/predict", tags=["predict", "inference"])
+router = APIRouter()
 
 
-@predict_router.post("/batch", status_code=status.HTTP_200_OK, response_model=str)
+@router.post("/batch", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("6/minute")
 async def run_chat_inference_batch(
     request: Request,
@@ -33,7 +33,7 @@ async def run_chat_inference_batch(
     return model_response
 
 
-@predict_router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
+@router.post("/stream", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("6/minute")
 async def run_chat_inference_stream(
     request: Request,
@@ -45,7 +45,7 @@ async def run_chat_inference_stream(
     )
 
 
-@predict_router.post("/weather", status_code=status.HTTP_200_OK, response_model=str)
+@router.post("/weather", status_code=status.HTTP_200_OK, response_model=str)
 @limiter.limit("4/minute")
 async def run_chat_inference_weather(
     request: Request,

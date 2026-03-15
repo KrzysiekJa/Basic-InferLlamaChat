@@ -164,7 +164,7 @@
             const formData = new FormData(form)
             const userPrompt = formData.get('user-prompt')
             const maxTokens = parseInt(formData.get('max-tokens'), 10)
-            const endpoint = '/predict/' + formType + '/'
+            const endpoint = 'api/v1/predict/' + formType + '/'
             const responseContainerId = formType + '-response'
             
             if (formType === "stream") {
@@ -182,6 +182,7 @@
                         max_tokens: maxTokens,
                     }),
                 })
+                // TODO: split try-catch into two parts, one for fetch and one for response processing
                 if (formType === "stream") {
                     const reader = await response.body.getReader()
                     await readStream(reader, responseContainerId)
