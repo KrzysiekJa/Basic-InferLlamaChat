@@ -182,7 +182,10 @@
                         max_tokens: maxTokens,
                     }),
                 })
-                // TODO: split try-catch into two parts, one for fetch and one for response processing
+            } catch (err) {
+                console.error("Fetch error:", err)
+            }
+            try {
                 if (formType === "stream") {
                     const reader = await response.body.getReader()
                     await readStream(reader, responseContainerId)
@@ -191,7 +194,7 @@
                     setBatchText(text, responseContainerId)
                 }
             } catch (err) {
-                console.error("Fetch error:", err)
+                console.error("Response processing error:", err)
             }
         }
 
