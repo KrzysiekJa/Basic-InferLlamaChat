@@ -77,7 +77,7 @@ async def get_chat_inference_weather(
         tools=tools,
         tool_choice="required",
     )
-    response_output = response.output
+    response_output = response.output_text
 
     if not response_output:
         raise HTTPException(
@@ -108,5 +108,10 @@ async def get_chat_inference_weather(
         model=settings.llm.MODEL,
         max_output_tokens=max_tokens,
     )
+    
+    if not enriched_response.output_text:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
+        )
 
     return enriched_response.output_text
