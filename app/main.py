@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, status
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -14,7 +16,15 @@ from app.api import register_routes
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 
 
-app: FastAPI = FastAPI(title="Llama4Infer ChatApp")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    yield
+    # Shutdown
+    limiter.try_acquire = lambda *args, **kwargs: True
+
+
+app: FastAPI = FastAPI(title="Llama4Infer ChatApp", lifespan=lifespan)
 init_logging()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
