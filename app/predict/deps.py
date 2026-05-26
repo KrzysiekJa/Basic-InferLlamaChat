@@ -7,9 +7,7 @@ from app.logger import logger
 
 
 async def get_llm_client() -> AsyncGenerator[AsyncOpenAI, None]:
-    client = AsyncOpenAI(
-        api_key=settings.llm.OPENAI_API_KEY, base_url=settings.llm.BASE_URL
-    )
+    client = AsyncOpenAI(api_key=settings.llm.API_KEY, base_url=settings.llm.BASE_URL)
     logger.info("LLM client initialized successfully.")
     yield client
 
