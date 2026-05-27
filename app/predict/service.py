@@ -1,117 +1,76 @@
-import json
-from fastapi import HTTPException, status
-from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
+from fastapi.responses import StreamingResponse
 
-from app.config import settings
-from app.predict import deps
-from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
-from app.tools.definitions import GET_CURRENT_WEATHER_FROM_OWM
-from app.tools.functions import get_current_weather_from_owm
+from app.providers.factory import get_inference_provider, get_stream_provider
+
+
+# --- Provider-agnostic inference functions ---
+# These functions automatically select the right implementation based on DEFAULT_PROVIDER
+
+async def get_inference_batch(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> str:
+    """Perform batch inference using the configured provider."""
+    provider = get_inference_provider()
+    return await provider.inference_batch(user_prompt, max_tokens, llm_client)
+
+
+async def get_inference_stream(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> StreamingResponse:
+    """Perform streaming inference using the configured provider."""
+    provider = get_inference_provider()
+    return await provider.inference_stream(user_prompt, max_tokens, llm_client)
+
+
+async def get_inference_weather(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> str:
+    """Perform inference with weather tool using the configured provider."""
+    provider = get_inference_provider()
+    return await provider.inference_weather(user_prompt, max_tokens, llm_client)
+
+
+# --- Backward compatibility aliases ---
+# Keep the old function names for existing code
+
+async def get_responses_inference_batch(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> str:
+    """Deprecated: Use get_inference_batch instead."""
+    return await get_inference_batch(user_prompt, max_tokens, llm_client)
+
+
+async def get_responses_inference_stream(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> StreamingResponse:
+    """Deprecated: Use get_inference_stream instead."""
+    return await get_inference_stream(user_prompt, max_tokens, llm_client)
+
+
+async def get_responses_inference_weather(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+) -> str:
+    """Deprecated: Use get_inference_weather instead."""
+    return await get_inference_weather(user_prompt, max_tokens, llm_client)
 
 
 async def get_chat_inference_batch(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
 ) -> str:
-    response = await llm_client.responses.create(
-        input=[
-            {
-                "role": "system",
-                "content": CUSTOM_SYSTEM_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
-        model=settings.llm.MODEL,
-        max_output_tokens=max_tokens,
-        temperature=settings.llm.TEMPERATURE,
-    )
-
-    if not response:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
-        )
-
-    return response.output_text
+    """Deprecated: Use get_inference_batch instead."""
+    return await get_inference_batch(user_prompt, max_tokens, llm_client)
 
 
 async def get_chat_inference_stream(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
-) -> str:
-    response = await llm_client.responses.stream(
-        input=[
-            {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
-        model=settings.llm.MODEL,
-        max_output_tokens=max_tokens,
-        temperature=settings.llm.TEMPERATURE,
-    )
-
-    return StreamingResponse(
-        deps.stream_generator(response), media_type="text/event-stream"
-    )
+) -> StreamingResponse:
+    """Deprecated: Use get_inference_stream instead."""
+    return await get_inference_stream(user_prompt, max_tokens, llm_client)
 
 
 async def get_chat_inference_weather(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
 ) -> str:
-    tools = [GET_CURRENT_WEATHER_FROM_OWM]
-    messages = [
-        {
-            "role": "system",
-            "content": OWM_TOOL_SYSTEM_PROMPT,
-        },
-        {"role": "user", "content": user_prompt},
-    ]
-
-    response = await llm_client.responses.create(
-        input=messages,
-        model=settings.llm.MODEL,
-        max_output_tokens=settings.weather_api.MAX_TOKENS,
-        tools=tools,
-        tool_choice="required",
-    )
-    response_output = response.output_text
-
-    if not response_output:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
-        )
-        
-    for item in response_output:
-        item_name = item.name
-        
-        if item.type != "function_call" or item_name != "get_current_weather_from_owm":
-            continue
-        
-        args = json.loads(item.arguments)
-        result = get_current_weather_from_owm(
-            args.get("location"), args.get("unit", "metric")
-        )
-        messages.append(
-            {
-                "call_id": item.call_id,
-                "type": "function_call_output",
-                "name": item_name,
-                "output": str(result),
-            }
-        )
-
-    enriched_response = await llm_client.responses.create(
-        input=messages,
-        model=settings.llm.MODEL,
-        max_output_tokens=max_tokens,
-    )
-    
-    if not enriched_response.output_text:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
-        )
-
-    return enriched_response.output_text
+    """Deprecated: Use get_inference_weather instead."""
+    return await get_inference_weather(user_prompt, max_tokens, llm_client)

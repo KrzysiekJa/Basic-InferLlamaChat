@@ -1,5 +1,7 @@
+import os
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -7,28 +9,70 @@ BASE_PATH = Path(__file__).resolve().parent
 
 
 class LLMSettings(BaseSettings):
-    CONTEXT_WINDOW: int = 16000
-    MAX_TOKENS: int = 128
-    TEMPERATURE: float = 0.7
-    MODEL: str = "openai/gpt-5-nano" # "meta-llama/Llama-4-Scout-17B-16E-Instruct"
-    # TOGETHER_API_KEY: str  # will be read from env variable
-    OPENAI_API_KEY: str  # will be read from env variable
-    BASE_URL: str = "https://api.openai.com"
+    CONTEXT_WINDOW: int
+    MAX_TOKENS: int
+    TEMPERATURE: float
+    MODEL: str
+    # will be read from .env variables
+    DEFAULT_PROVIDER: str
+    TOGETHER_API_KEY: str
+    TOGETHER_API_URL: str
+    OPENROUTER_API_KEY: str
+    OPENROUTER_API_URL: str
+    OPENAI_API_KEY: str
+    OPENAI_API_URL: str
+    API_KEY: str = ""
+    BASE_URL: str = ""
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
+
+    @model_validator(mode="after")
+    def set_api_key(self) -> "LLMSettings":
+        # Set API_KEY and BASE_URL based on provider
+
+        match self.DEFAULT_PROVIDER:
+            case "together":
+                self.API_KEY = self.TOGETHER_API_KEY
+                self.BASE_URL = self.TOGETHER_API_URL
+            case "openrouter":
+                self.API_KEY = self.OPENROUTER_API_KEY
+                self.BASE_URL = self.OPENROUTER_API_URL
+            case "openai":
+                self.API_KEY = self.OPENAI_API_KEY
+                self.BASE_URL = self.OPENAI_API_URL
+            case _:
+                self.API_KEY = self.OPENAI_API_KEY
+                self.BASE_URL = self.OPENAI_API_URL
+
+        return self
 
 
 class WeatherAPISettings(BaseSettings):
-    OWM_API_KEY: str  # openweathermap api key
-    BASE_URL: str = "https://api.openweathermap.org/data/2.5/weather?"
-    MAX_TOKENS: int = 128
+    OWM_API_KEY: str
+    BASE_URL: str
+    MAX_TOKENS: int = os.getenv("OWM_MAX_TOKENS", 128)
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
+
 
 class ChatSettings(BaseSettings):
-    OUTPUT_MIN_TOKENS: int = 0
-    OUTPUT_MAX_TOKENS: int = 768
+    OUTPUT_MIN_TOKENS: int
+    OUTPUT_MAX_TOKENS: int
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
 
 
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
-    # TODO: fix the key error
     weather_api: WeatherAPISettings = WeatherAPISettings()
     chat: ChatSettings = ChatSettings()
 
