@@ -9,157 +9,144 @@ from openai import AsyncOpenAI
 
 from app.config import settings
 from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
-from app.tools.functions import get_current_weather_from_owm
 
 
-class ResponsesInferenceProvider:
-    """Inference provider for OpenAI Responses API."""
+async def run_responses_inference_batch(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
+) -> str:
+    messages = [
+        {
+            "role": "system",
+            "content": CUSTOM_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
 
-    async def inference_batch(
-        self, user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
-    ) -> str:
-        response = await llm_client.responses.create(
-            input=[
-                {
-                    "role": "system",
-                    "content": CUSTOM_SYSTEM_PROMPT,
-                },
-                {
-                    "role": "user",
-                    "content": user_prompt,
-                },
-            ],
-            model=settings.llm.MODEL,
-            max_output_tokens=max_tokens,
-            temperature=settings.llm.TEMPERATURE,
+    response = await llm_client.responses.create(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=max_tokens,
+        temperature=settings.llm.TEMPERATURE,
+    )
+
+    if not response:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
         )
 
-        if not response:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Response is empty."
-            )
+    return response.output_text
 
-        return response.output_text
 
-    async def inference_stream(
-        self, user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
-    ) -> StreamingResponse:
-        response = await llm_client.responses.stream(
-            input=[
-                {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": user_prompt,
-                },
-            ],
-            model=settings.llm.MODEL,
-            max_output_tokens=max_tokens,
-            temperature=settings.llm.TEMPERATURE,
+async def run_responses_inference_stream(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
+) -> StreamingResponse:
+    messages = [
+        {
+            "role": "system",
+            "content": CUSTOM_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
+
+    response = await llm_client.responses.stream(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=max_tokens,
+        temperature=settings.llm.TEMPERATURE,
+    )
+
+    return StreamingResponse(
+        stream_generator_responses(response), media_type="text/event-stream"
+    )
+
+
+async def run_responses_inference_weather(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
+) -> str:
+    from app.providers.factory import get_tool_definition
+    from app.tools.functions import get_current_weather_from_owm
+
+    tool_defs = get_tool_definition()
+    tools = [tool_defs.get_current_weather_from_owm]
+    messages = [
+        {
+            "role": "system",
+            "content": OWM_TOOL_SYSTEM_PROMPT,
+        },
+        {"role": "user", "content": user_prompt},
+    ]
+
+    response = await llm_client.responses.create(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=settings.weather_api.MAX_TOKENS,
+        tools=tools,
+        tool_choice="required",
+    )
+    response_output = response.output_text
+
+    if not response_output:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
         )
 
-        return StreamingResponse(
-            self.stream_generator_responses(response), media_type="text/event-stream"
-        )
+    for item in response_output:
+        item_name = item.name
 
-    async def inference_weather(
-        self, user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
-    ) -> str:
-        from app.providers.factory import get_tool_definitions
-        
-        tool_defs = get_tool_definitions()
-        tools = [tool_defs.get_current_weather_from_owm]
-        messages = [
+        if item.type != "function_call" or item_name != "get_current_weather_from_owm":
+            continue
+
+        args = json.loads(item.arguments)
+        result = get_current_weather_from_owm(
+            args.get("location"), args.get("unit", "metric")
+        )
+        messages.append(
             {
-                "role": "system",
-                "content": OWM_TOOL_SYSTEM_PROMPT,
-            },
-            {"role": "user", "content": user_prompt},
-        ]
-
-        response = await llm_client.responses.create(
-            input=messages,
-            model=settings.llm.MODEL,
-            max_output_tokens=settings.weather_api.MAX_TOKENS,
-            tools=tools,
-            tool_choice="required",
+                "call_id": item.call_id,
+                "type": "function_call_output",
+                "name": item_name,
+                "output": str(result),
+            }
         )
-        response_output = response.output_text
 
-        if not response_output:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
-            )
-            
-        for item in response_output:
-            item_name = item.name
-            
-            if item.type != "function_call" or item_name != "get_current_weather_from_owm":
-                continue
-            
-            args = json.loads(item.arguments)
-            result = get_current_weather_from_owm(
-                args.get("location"), args.get("unit", "metric")
-            )
-            messages.append(
-                {
-                    "call_id": item.call_id,
-                    "type": "function_call_output",
-                    "name": item_name,
-                    "output": str(result),
-                }
-            )
+    enriched_response = await llm_client.responses.create(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=max_tokens,
+    )
 
-        enriched_response = await llm_client.responses.create(
-            input=messages,
-            model=settings.llm.MODEL,
-            max_output_tokens=max_tokens,
+    if not enriched_response.output_text:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
         )
-        
-        if not enriched_response.output_text:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
-            )
 
-        return enriched_response.output_text
-
-    @staticmethod
-    async def stream_generator_responses(response: AsyncGenerator) -> AsyncGenerator[str, None]:
-        """Stream generator for responses API."""
-        tokens_count = 0
-
-        async with contextlib.aclosing(response) as resp:
-            async for chunk in resp:
-                if not chunk.type == "response.completed":
-                    break
-
-                content = chunk.delta
-                tokens_count += len(content.split())
-
-                if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
-                    break
-
-                yield content
+    return enriched_response.output_text
 
 
-class ResponsesStreamProvider:
-    """Stream provider for OpenAI Responses API."""
+async def stream_generator_responses(
+    response: AsyncGenerator,
+) -> AsyncGenerator[str, None]:
+    """Stream generator for responses API."""
+    tokens_count = 0
 
-    async def stream_generator(self, response: AsyncGenerator) -> AsyncGenerator[str, None]:
-        """Generate streaming output from responses API."""
-        tokens_count = 0
+    async with contextlib.aclosing(response) as resp:
+        async for chunk in resp:
+            if not chunk.type == "response.completed":
+                break
 
-        async with contextlib.aclosing(response) as resp:
-            async for chunk in resp:
-                if not chunk.type == "response.completed":
-                    break
+            content = chunk.delta
+            tokens_count += len(content.split())
 
-                content = chunk.delta
-                tokens_count += len(content.split())
+            if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
+                break
 
-                if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
-                    break
-
-                yield content
+            yield content
 
 
 class ResponsesToolDefinition:

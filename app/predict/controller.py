@@ -5,9 +5,9 @@ from app.rate_limiting import limiter
 from app.predict import deps
 from app.predict.schemas import ChatInput, WeatherInput
 from app.predict.service import (
-    get_chat_inference_batch,
-    get_chat_inference_stream,
-    get_chat_inference_weather,
+    get_inference_batch,
+    get_inference_stream,
+    get_inference_weather,
 )
 from app.logger import logger
 
@@ -23,11 +23,11 @@ async def run_chat_inference_batch(
     llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
     try:
-        model_response = await get_chat_inference_batch(
+        model_response = await get_inference_batch(
             chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
         )
     except HTTPException as exc:
-        logger.error(f"Error occured during batch inference: {exc.detail}")
+        logger.error(f"Error occurred during batch inference: {exc.detail}")
         raise exc
 
     return model_response
@@ -40,7 +40,7 @@ async def run_chat_inference_stream(
     chat_input: ChatInput,
     llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
-    return await get_chat_inference_stream(
+    return await get_inference_stream(
         chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
     )
 
@@ -53,13 +53,13 @@ async def run_chat_inference_weather(
     llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
 ):
     try:
-        model_response =  await get_chat_inference_weather(
+        model_response = await get_inference_weather(
             weather_input.user_prompt,
             weather_input.max_tokens,
             llm_client=llm_client,
         )
     except HTTPException as exc:
-        logger.error(f"Error occured during weather inference: {exc.detail}")
+        logger.error(f"Error occurred during weather inference: {exc.detail}")
         raise exc
 
     return model_response
