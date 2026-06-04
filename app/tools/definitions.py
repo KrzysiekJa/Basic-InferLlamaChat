@@ -11,12 +11,12 @@ Example:
     tools = [GET_CURRENT_WEATHER_FROM_OWM]
 """
 
-from app.providers.factory import get_tool_definitions
+from app.providers.factory import get_tool_definition
 
 # Automatically select the correct tool definition format for the current provider
-_tool_defs = get_tool_definitions()
+_tool_def = get_tool_definition()
 
 # Tool schemas
-GET_CURRENT_WEATHER_FROM_OWM = _tool_defs.get_current_weather_from_owm()
+GET_CURRENT_WEATHER_FROM_OWM = _tool_def.get_current_weather_from_owm()
 
 __all__ = ["GET_CURRENT_WEATHER_FROM_OWM"]

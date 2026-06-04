@@ -62,10 +62,10 @@ async def run_responses_inference_stream(
 async def run_responses_inference_weather(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
 ) -> str:
-    from app.providers.factory import get_tool_definitions
+    from app.providers.factory import get_tool_definition
     from app.tools.functions import get_current_weather_from_owm
 
-    tool_defs = get_tool_definitions()
+    tool_defs = get_tool_definition()
     tools = [tool_defs.get_current_weather_from_owm]
     messages = [
         {

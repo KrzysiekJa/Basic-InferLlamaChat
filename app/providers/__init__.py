@@ -5,7 +5,11 @@ from app.providers.base import (
     StreamProvider,
     ToolDefinition,
 )
-from app.providers.factory import get_inference_provider, get_stream_provider, get_tool_definitions
+from app.providers.factory import (
+    get_inference_provider,
+    get_stream_provider,
+    get_tool_definition,
+)
 
 __all__ = [
     "InferenceProvider",
@@ -13,6 +17,5 @@ __all__ = [
     "ToolDefinition",
     "get_inference_provider",
     "get_stream_provider",
-    "get_tool_definitions",
+    "get_tool_definition",
 ]
-

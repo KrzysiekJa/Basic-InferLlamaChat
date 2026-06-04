@@ -75,7 +75,7 @@ def get_weather_callable() -> Callable:
         return run_chat_inference_weather
 
 
-def get_tool_definitions() -> ToolDefinition:
+def get_tool_definition() -> ToolDefinition:
     """
     Factory function to get the appropriate tool definitions based on configuration.
 
