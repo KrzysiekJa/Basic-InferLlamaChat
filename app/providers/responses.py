@@ -14,17 +14,19 @@ from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
 async def run_responses_inference_batch(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
 ) -> str:
+    messages = [
+        {
+            "role": "system",
+            "content": CUSTOM_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
+
     response = await llm_client.responses.create(
-        input=[
-            {
-                "role": "system",
-                "content": CUSTOM_SYSTEM_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+        input=messages,
         model=settings.llm.MODEL,
         max_output_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,
@@ -41,14 +43,19 @@ async def run_responses_inference_batch(
 async def run_responses_inference_stream(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
 ) -> StreamingResponse:
+    messages = [
+        {
+            "role": "system",
+            "content": CUSTOM_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
+
     response = await llm_client.responses.stream(
-        input=[
-            {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+        input=messages,
         model=settings.llm.MODEL,
         max_output_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,

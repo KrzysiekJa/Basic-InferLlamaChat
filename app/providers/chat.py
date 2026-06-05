@@ -14,17 +14,19 @@ from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
 async def run_chat_inference_batch(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
 ) -> str:
+    messages = [
+        {
+            "role": "system",
+            "content": CUSTOM_SYSTEM_PROMPT,
+        },
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
+
     chat_completion = await llm_client.chat.completions.create(
-        messages=[
-            {
-                "role": "system",
-                "content": CUSTOM_SYSTEM_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+        messages=messages,
         model=settings.llm.MODEL,
         max_completion_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,
@@ -41,14 +43,16 @@ async def run_chat_inference_batch(
 async def run_chat_inference_stream(
     user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
 ) -> StreamingResponse:
+    messages = [
+        {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": user_prompt,
+        },
+    ]
+
     response = await llm_client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": CUSTOM_SYSTEM_PROMPT},
-            {
-                "role": "user",
-                "content": user_prompt,
-            },
-        ],
+        messages=messages,
         model=settings.llm.MODEL,
         max_completion_tokens=max_tokens,
         temperature=settings.llm.TEMPERATURE,
