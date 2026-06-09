@@ -164,7 +164,7 @@
             const formData = new FormData(form)
             const userPrompt = formData.get('user-prompt')
             const maxTokens = parseInt(formData.get('max-tokens'), 10)
-            const endpoint = 'api/v1/predict/' + formType + '/'
+            const endpoint = '/api/v1/predict/' + formType
             const responseContainerId = formType + '-response'
             
             if (formType === "stream") {
@@ -182,19 +182,24 @@
                         max_tokens: maxTokens,
                     }),
                 })
-            } catch (err) {
-                console.error("Fetch error:", err)
-            }
-            try {
+                
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    console.error(`HTTP Error: ${response.status} - ${errorText}`)
+                    document.getElementById(responseContainerId).innerText = `Error: ${response.status} - ${errorText}`
+                    return
+                }
+                
                 if (formType === "stream") {
-                    const reader = await response.body.getReader()
+                    const reader = response.body.getReader()
                     await readStream(reader, responseContainerId)
                 } else {
                     const text = await response.text()
                     setBatchText(text, responseContainerId)
                 }
             } catch (err) {
-                console.error("Response processing error:", err)
+                console.error("Request error:", err)
+                document.getElementById(responseContainerId).innerText = `Error: ${err.message}`
             }
         }
 
