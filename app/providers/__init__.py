@@ -1,18 +1,19 @@
-"""Provider abstraction layer using repository pattern."""
+"""Provider abstraction layer using factory pattern."""
 
-from app.providers.base import (
-    InferenceProvider,
-    StreamProvider,
-    ToolDefinition,
+from app.providers.base import ToolDefinition
+from app.providers.factory import (
+    get_inference_callable,
+    get_stream_callable,
+    get_stream_generator,
+    get_weather_callable,
+    get_tool_definition,
 )
-from app.providers.factory import get_inference_provider, get_stream_provider, get_tool_definitions
 
 __all__ = [
-    "InferenceProvider",
-    "StreamProvider",
     "ToolDefinition",
-    "get_inference_provider",
-    "get_stream_provider",
-    "get_tool_definitions",
+    "get_inference_callable",
+    "get_stream_callable",
+    "get_stream_generator",
+    "get_weather_callable",
+    "get_tool_definition",
 ]
-

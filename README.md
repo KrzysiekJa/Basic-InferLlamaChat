@@ -11,15 +11,18 @@ https://github.com/user-attachments/assets/75d0434e-166e-4a69-97d8-10a98a00bc60
 
 ## Setup instructions
 
+Whenever you intend to set up a project through your local virtual environment, follow these steps:
+
 1. Clone the repository: `git clone https://github.com/KrzysiekJa/basic-inferllamachat.git`
 2. Navigate to the project directory: `cd basic-inferllamachat`
-3. Install `uv` package manager, if not already installed: `pip install uv`
+3. Install the `uv` package manager, if not already installed: `pip install uv`
 4. Create a virtual environment: `uv venv .venv`
 5. Activate the virtual environment (`Linux/macOS`): `source .venv/bin/activate`
-6. Install dependencies using command: `uv sync --locked --all-extras`
-7. Create a API key for TogetherAI API on [https://together.xyz](https://together.xyz) and export it as an environment variable: `export TOGETHER_API_KEY=<your openai api key>`
-8. Create a API key for OpenWeatherMap API on [https://openweathermap.org](https://openweathermap.org) and export it as an environment variable: `export OWM_API_KEY=<your owm api key>`, if you intend to use weather chatbot
-9. Run the application: `PYTHONPATH=. python app/main.py`
+6. Install dependencies using the command: `uv sync --locked --all-extras`
+7. Copy the `.env` file: `cp app/example.env app/.env`
+8. Create an API key for the provider of your preference (OpenAI/TogetherAI/OpenRouter) and assign it within the `.env` file to the correct variable
+9. Create an API key for the OpenWeatherMap API on [https://openweathermap.org](https://openweathermap.org) and place it in the `.env` file, if you intend to use the weather chatbot
+10. Run the application: `PYTHONPATH=. python app/main.py`
 
 \* For `Windows` users:
 
