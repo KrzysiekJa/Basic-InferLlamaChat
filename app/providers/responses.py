@@ -1,7 +1,6 @@
 """OpenAI Responses API provider implementation."""
 
 import json
-import contextlib
 from typing import AsyncGenerator
 from fastapi import HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -135,18 +134,17 @@ async def stream_generator_responses(
     """Stream generator for responses API."""
     tokens_count = 0
 
-    async with contextlib.aclosing(response) as resp:
-        async for chunk in resp:
-            if not chunk.type == "response.completed":
-                break
+    async for chunk in response:
+        if not chunk.type == "response.completed":
+            break
 
-            content = chunk.delta
-            tokens_count += len(content.split())
+        content = chunk.delta
+        tokens_count += len(content.split())
 
-            if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
-                break
+        if settings.chat.OUTPUT_MAX_TOKENS <= tokens_count:
+            break
 
-            yield content
+        yield content
 
 
 class ResponsesToolDefinition:
