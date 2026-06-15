@@ -18,6 +18,7 @@ from app.providers.chat import (
     run_chat_inference_weather,
     ChatToolDefinition,
 )
+from app.providers import google_genai
 
 
 def get_inference_callable() -> Callable:
@@ -29,6 +30,8 @@ def get_inference_callable() -> Callable:
     """
     if settings.llm.DEFAULT_PROVIDER == "openai":
         return run_responses_inference_batch
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        return google_genai.run_google_inference_batch
     else:
         # All other providers use Chat Completions API
         return run_chat_inference_batch
@@ -43,6 +46,8 @@ def get_stream_callable() -> Callable:
     """
     if settings.llm.DEFAULT_PROVIDER == "openai":
         return run_responses_inference_stream
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        return google_genai.run_google_inference_stream
     else:
         # All other providers use Chat Completions API
         return run_chat_inference_stream
@@ -57,6 +62,8 @@ def get_stream_generator() -> Callable:
     """
     if settings.llm.DEFAULT_PROVIDER == "openai":
         return stream_generator_responses
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        return google_genai.stream_generator_google
     else:
         return stream_generator_chat
 
@@ -70,6 +77,8 @@ def get_weather_callable() -> Callable:
     """
     if settings.llm.DEFAULT_PROVIDER == "openai":
         return run_responses_inference_weather
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        return google_genai.run_google_inference_weather
     else:
         # All other providers use Chat Completions API
         return run_chat_inference_weather
@@ -84,6 +93,8 @@ def get_tool_definition() -> ToolDefinition:
     """
     if settings.llm.DEFAULT_PROVIDER == "openai":
         return ResponsesToolDefinition()
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        return google_genai.GoogleGenAIToolDefinition()
     else:
         # All other providers use Chat Completions API format
         return ChatToolDefinition()

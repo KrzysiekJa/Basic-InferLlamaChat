@@ -1,6 +1,6 @@
-from openai import AsyncOpenAI
 from fastapi.responses import StreamingResponse
 
+from app.providers.protocol import LLMClient
 from app.providers.factory import (
     get_inference_callable,
     get_stream_callable,
@@ -13,7 +13,7 @@ from app.providers.factory import (
 
 
 async def get_inference_batch(
-    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+    user_prompt: str, max_tokens: int, llm_client: LLMClient | None = None
 ) -> str:
     """Perform batch inference using the configured provider."""
     func = get_inference_callable()
@@ -21,7 +21,7 @@ async def get_inference_batch(
 
 
 async def get_inference_stream(
-    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+    user_prompt: str, max_tokens: int, llm_client: LLMClient | None = None
 ) -> StreamingResponse:
     """Perform streaming inference using the configured provider."""
     func = get_stream_callable()
@@ -29,7 +29,7 @@ async def get_inference_stream(
 
 
 async def get_inference_weather(
-    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI | None = None
+    user_prompt: str, max_tokens: int, llm_client: LLMClient | None = None
 ) -> str:
     """Perform inference with weather tool using the configured provider."""
     func = get_weather_callable()

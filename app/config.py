@@ -9,11 +9,11 @@ BASE_PATH = Path(__file__).resolve().parent
 
 
 class LLMSettings(BaseSettings):
+    # will be read from .env variables
     CONTEXT_WINDOW: int
     MAX_TOKENS: int
     TEMPERATURE: float
     MODEL: str
-    # will be read from .env variables
     DEFAULT_PROVIDER: str
     TOGETHER_API_KEY: str
     TOGETHER_API_URL: str
@@ -21,6 +21,8 @@ class LLMSettings(BaseSettings):
     OPENROUTER_API_URL: str
     OPENAI_API_KEY: str
     OPENAI_API_URL: str
+    GOOGLE_API_KEY: str
+    GOOGLE_MODEL: str
     API_KEY: str = ""
     BASE_URL: str = ""
 
@@ -43,6 +45,10 @@ class LLMSettings(BaseSettings):
             case "openai":
                 self.API_KEY = self.OPENAI_API_KEY
                 self.BASE_URL = self.OPENAI_API_URL
+            case "google":
+                self.API_KEY = self.GOOGLE_API_KEY
+                # google-genai client manages endpoints internally
+                self.BASE_URL = ""
             case _:
                 self.API_KEY = self.OPENAI_API_KEY
                 self.BASE_URL = self.OPENAI_API_URL
