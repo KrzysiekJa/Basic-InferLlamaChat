@@ -19,8 +19,43 @@ TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    # Initialize provider-specific long-lived clients (google-genai) to avoid
+    # closing the underlying httpx client before streaming completes.
+    if settings.llm.DEFAULT_PROVIDER == "google":
+        try:
+            from google import genai
+
+            gclient = genai.Client(api_key=settings.llm.API_KEY)
+            # async interface
+            app.state.google_genai_client = gclient
+            app.state.google_genai_async = getattr(gclient, "aio", None) or gclient
+            logger.info("Initialized persistent Google GenAI client on startup.")
+        except Exception as exc:  # pragma: no cover - environment specific
+            logger.exception("Failed to initialize Google GenAI client: %s", exc)
+
     yield
+
     # Shutdown
+    # Ensure we close any long-lived google-genai async client gracefully.
+    if getattr(app.state, "google_genai_async", None) is not None:
+        try:
+            aclient = app.state.google_genai_async
+            aclose = getattr(aclient, "aclose", None)
+
+            if aclose:
+                await aclose()
+
+            # try underlying httpx async client if present
+            underlying = getattr(aclient, "_async_httpx_client", None)
+
+            if underlying is not None:
+                aclose_under = getattr(underlying, "aclose", None)
+                if aclose_under:
+                    await aclose_under()
+            logger.info("Closed persistent Google GenAI client on shutdown.")
+        except Exception:
+            logger.exception("Error while closing Google GenAI client")
+
     limiter.try_acquire = lambda *args, **kwargs: True
 
 
