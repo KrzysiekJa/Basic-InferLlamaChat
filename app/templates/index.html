@@ -8,6 +8,7 @@
     <!-- Include Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Llama4Infer ChatApp</title>
+    <link rel="stylesheet" href="/static/css/ui.css">
 </head>
 
 <body class="bg-gray-100 h-screen">
@@ -58,11 +59,10 @@
             </form>
             <p class="mt-2 text-gray-500" rounded-lg p-2>
             Batch Response:
-            <span
+            <div
                 id="batch-response"
-                class="block mt-2 text-gray-900"
-                style="white-space: pre-line"
-            ></span>
+                class="mt-2 text-gray-900"
+            ></div>
             </p>
         </div>
         <!-- Stream Chat Form -->
@@ -99,11 +99,10 @@
             </form>
             <p class="mt-2 text-gray-500 rounded-lg p-2">
             Stream Response:
-            <span
+            <div
                 id="stream-response"
-                class="block mt-2 text-gray-900"
-                style="white-space: pre-line"
-            ></span>
+                class="mt-2 text-gray-900"
+            ></div>
             </p>
         </div>
         <!-- Weather Chat Form -->
@@ -143,11 +142,10 @@
             </form>
             <p class="mt-2 text-gray-500 rounded-lg p-2">
             Weather Description:
-            <span
+            <div
                 id="weather-response"
-                class="block mt-2 text-gray-900"
-                style="white-space: pre-line"
-            ></span>
+                class="mt-2 text-gray-900"
+            ></div>
             </p>
         </div>
         </div>
@@ -156,85 +154,8 @@
             <p>&copy; 2026 Llama4Infer</p>
         </div>
     </div>
-    <script type="text/javascript" src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
-    <script>
-        async function handleSubmit(event, formType = "batch") {
-            event.preventDefault()
-            const form = event.target
-            const formData = new FormData(form)
-            const userPrompt = formData.get('user-prompt')
-            const maxTokens = parseInt(formData.get('max-tokens'), 10)
-            const endpoint = '/api/v1/predict/' + formType
-            const responseContainerId = formType + '-response'
-            
-            if (formType === "stream") {
-                document.getElementById(responseContainerId).innerText = ''
-            }
-            
-            try {
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_prompt: userPrompt,
-                        max_tokens: maxTokens,
-                    }),
-                })
-                
-                if (!response.ok) {
-                    const errorText = await response.text()
-                    console.error(`HTTP Error: ${response.status} - ${errorText}`)
-                    document.getElementById(responseContainerId).innerText = `Error: ${response.status} - ${errorText}`
-                    return
-                }
-                
-                if (formType === "stream") {
-                    const reader = response.body.getReader()
-                    await readStream(reader, responseContainerId)
-                } else {
-                    const text = await response.text()
-                    setBatchText(text, responseContainerId)
-                }
-            } catch (err) {
-                console.error("Request error:", err)
-                document.getElementById(responseContainerId).innerText = `Error: ${err.message}`
-            }
-        }
-
-        function setBatchText(text, containerId) {
-            const converter = new showdown.Converter()
-            const html = converter.makeHtml(text.slice(1, -1))
-            const fixedHtml = html.replace(/\\n/g, "<br>").replace(/\\/g, "")
-            document.getElementById(containerId).innerHTML = fixedHtml
-        }
-
-        async function readStream(reader, containerId) {
-            const decoder = new TextDecoder()
-
-            while (true) {
-                let result = await reader.read()
-
-                if (result.done) {
-                    break
-                }
-                let chunk = decoder.decode(result.value, {stream: true})
-                chunk = chunk.replace(/\*\*/g, "").replace(/\\/g, "")
-                document.getElementById(containerId).innerText += chunk
-            }
-        }
-
-        document.getElementById('batch-chat-form').addEventListener('submit', (e) => {
-            handleSubmit(e)
-        })
-        document.getElementById('stream-chat-form').addEventListener('submit', (e) => {
-            handleSubmit(e, "stream")
-        })
-        document.getElementById('weather-chat-form').addEventListener('submit', (e) => {
-            handleSubmit(e, "weather")
-        })
-    </script>
+    <script defer src="https://unpkg.com/showdown/dist/showdown.min.js"></script>
+    <script defer src="/static/js/ui.js"></script>
 </body>
 
 </html>

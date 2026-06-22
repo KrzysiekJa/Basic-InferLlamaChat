@@ -11,6 +11,7 @@ from app.logger import init_logging, logger
 from app.rate_limiting import limiter
 from app.config import settings, BASE_PATH
 from app.api import register_routes
+from fastapi.staticfiles import StaticFiles
 
 
 TEMPLATES = Jinja2Templates(directory=str(BASE_PATH / "templates"))
@@ -63,6 +64,7 @@ app: FastAPI = FastAPI(title="Llama4Infer ChatApp", lifespan=lifespan)
 init_logging()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.mount("/static", StaticFiles(directory=str(BASE_PATH / "static")), name="static")
 register_routes(app)
 
 
