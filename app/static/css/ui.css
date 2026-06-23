@@ -1,0 +1,95 @@
+/* UI-specific response styles moved from inline template */
+/* Ensure bullets/numbers are visible despite Tailwind preflight */
+#batch-response ul,
+#stream-response ul,
+#weather-response ul {
+    list-style-type: disc;
+    margin-left: 1.25rem;
+    padding-left: 1.25rem;
+}
+
+#batch-response ol,
+#stream-response ol,
+#weather-response ol {
+    list-style-type: decimal;
+    margin-left: 1.25rem;
+    padding-left: 1.25rem;
+}
+
+/* Small readable defaults for response content */
+#batch-response,
+#stream-response,
+#weather-response {
+    line-height: 1.6;
+    word-wrap: break-word;
+}
+
+/* Visual tweaks for readability */
+#batch-response,
+#stream-response,
+#weather-response {
+    font-size: 15px;
+    color: #111827; /* Tailwind gray-900 */
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background-color: transparent;
+}
+
+/* List spacing */
+#batch-response ul,
+#stream-response ul,
+#weather-response ul,
+#batch-response ol,
+#stream-response ol,
+#weather-response ol {
+    margin-top: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#batch-response li,
+#stream-response li,
+#weather-response li {
+    margin-bottom: 0.45rem;
+}
+
+/* Nested lists */
+#batch-response ul ul,
+#stream-response ul ul,
+#weather-response ul ul {
+    list-style-type: circle;
+    margin-left: 1.25rem;
+}
+
+/* Inline code */
+#batch-response code,
+#stream-response code,
+#weather-response code {
+    background: #f3f4f6; /* Tailwind gray-100 */
+    padding: 0.12rem 0.32rem;
+    border-radius: 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    font-size: 0.95em;
+}
+
+/* Code blocks */
+#batch-response pre,
+#stream-response pre,
+#weather-response pre {
+    background: #0f172a; /* Tailwind slate-900 */
+    color: #f8fafc; /* Tailwind slate-50 */
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+}
+
+/* Blockquotes */
+#batch-response blockquote,
+#stream-response blockquote,
+#weather-response blockquote {
+    border-left: 4px solid #e5e7eb; /* Tailwind gray-200 */
+    padding: 0.25rem 0.75rem;
+    margin: 0.5rem 0;
+    color: #374151; /* Tailwind gray-700 */
+    background: #f9fafb;
+}
