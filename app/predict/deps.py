@@ -5,7 +5,7 @@ from openai import AsyncOpenAI
 from app.config import settings
 from app.logger import logger
 from app.providers.factory import get_stream_generator
-from app.providers.protocol import LLMClient
+from app.providers.base import LLMClient
 
 
 async def get_llm_client(request: Request) -> LLMClient:
