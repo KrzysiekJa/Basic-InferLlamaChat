@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends, status, HTTPException
-from openai import AsyncOpenAI
+from app.providers.base import LLMClient
 
 from app.rate_limiting import limiter
 from app.predict import deps
@@ -20,7 +20,7 @@ router = APIRouter()
 async def run_chat_inference_batch(
     request: Request,
     chat_input: ChatInput,
-    llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
+    llm_client: LLMClient | None = Depends(deps.get_llm_client),
 ):
     try:
         model_response = await get_inference_batch(
@@ -38,7 +38,7 @@ async def run_chat_inference_batch(
 async def run_chat_inference_stream(
     request: Request,
     chat_input: ChatInput,
-    llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
+    llm_client: LLMClient | None = Depends(deps.get_llm_client),
 ):
     return await get_inference_stream(
         chat_input.user_prompt, chat_input.max_tokens, llm_client=llm_client
@@ -50,7 +50,7 @@ async def run_chat_inference_stream(
 async def run_chat_inference_weather(
     request: Request,
     weather_input: WeatherInput,
-    llm_client: AsyncOpenAI | None = Depends(deps.get_llm_client),
+    llm_client: LLMClient | None = Depends(deps.get_llm_client),
 ):
     try:
         model_response = await get_inference_weather(
