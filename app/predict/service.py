@@ -1,6 +1,6 @@
 from fastapi.responses import StreamingResponse
 
-from app.providers.protocol import LLMClient
+from app.providers.base import LLMClient
 from app.providers.factory import (
     get_inference_callable,
     get_stream_callable,

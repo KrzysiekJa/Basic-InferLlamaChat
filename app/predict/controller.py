@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends, status, HTTPException
-from app.providers.protocol import LLMClient
+from app.providers.base import LLMClient
 
 from app.rate_limiting import limiter
 from app.predict import deps
