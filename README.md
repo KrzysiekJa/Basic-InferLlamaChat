@@ -20,7 +20,7 @@ Whenever you intend to set up a project through your local virtual environment, 
 5. Activate the virtual environment (`Linux/macOS`): `source .venv/bin/activate`
 6. Install dependencies using the command: `uv sync --locked --all-extras`
 7. Copy the `.env` file: `cp app/example.env app/.env`
-8. Create an API key for the provider of your preference (OpenAI/TogetherAI/OpenRouter) and assign it within the `.env` file to the correct variable
+8. Create an API key for the provider of your preference (OpenAI/TogetherAI/OpenRouter/Google) and assign it within the `.env` file to the correct variable
 9. Create an API key for the OpenWeatherMap API on [https://openweathermap.org](https://openweathermap.org) and place it in the `.env` file, if you intend to use the weather chatbot
 10. Run the application: `PYTHONPATH=. python app/main.py`
 

@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-Basic-InferLlamaChat is a **FastAPI-based LLM inference web application** that abstracts multiple LLM providers (OpenAI, Together, OpenRouter) through a factory pattern. The application provides REST endpoints for batch and streaming inference with weather tool support and rate limiting.
+Basic-InferLlamaChat is a **FastAPI-based LLM inference web application** that abstracts multiple LLM providers (OpenAI, Together, OpenRouter, Google) through a factory pattern. The application provides REST endpoints for batch, streaming, and weather-assisted inference with rate limiting and a small browser UI.
 
-**Key Technologies**: FastAPI, Pydantic, OpenAI async client, Slowapi rate limiting, Jinja2 templates
+**Key Technologies**: FastAPI, Pydantic, OpenAI async client, Google GenAI client, Slowapi rate limiting, Jinja2 templates, Showdown (client-side Markdown rendering)
 
 ## Quick Start Commands
 
@@ -48,32 +48,41 @@ The codebase implements **Factory Design Pattern** to support multiple LLM provi
 
 ```
 app/
-├── main.py                 # FastAPI app initialization, lifespan, middleware
+├── main.py                 # FastAPI app initialization, lifespan, middleware, static mount
 ├── api.py                  # Route registration
 ├── config.py              # Pydantic settings (loaded from .env)
-├── logger.py              # Logging initialization
-├── rate_limiting.py       # Slowapi rate limiter configuration
-├── predict/               # Core inference API
-│   ├── controller.py      # FastAPI router endpoints (/batch, /stream, /weather)
-│   ├── service.py         # Async service functions (provider-agnostic)
-│   ├── deps.py            # Dependency injection (LLM client)
-│   └── schemas.py         # Pydantic models (ChatInput, WeatherInput)
-├── providers/             # Provider implementations (factory pattern)
-│   ├── base.py            # Protocol definitions
-│   ├── chat.py            # Chat Completions implementation
-│   ├── responses.py       # OpenAI Responses API implementation
-│   ├── factory.py         # Provider selection logic
-│   └── responses.py       # Response formatting
-├── prompts/               # Jinja2 prompt templates
-├── templates/             # HTML templates (web UI)
-└── tools/                 # Tool implementations
-    ├── definitions.py     # Tool schema definitions
-    └── functions.py       # Tool function handlers (weather, etc.)
+├── logger.py               # Logging initialization
+├── rate_limiting.py        # Slowapi rate limiter configuration
+├── predict/                # Core inference API
+│   ├── controller.py       # FastAPI router endpoints (/batch, /stream, /weather)
+│   ├── service.py          # Async service functions (provider-agnostic)
+│   ├── deps.py             # Dependency injection (LLM client)
+│   └── schemas.py          # Pydantic models (ChatInput, WeatherInput)
+├── providers/              # Provider implementations (factory pattern)
+│   ├── base.py             # Protocol definitions
+│   ├── chat.py             # Chat Completions implementation
+│   ├── responses.py        # OpenAI Responses API implementation
+│   ├── google_genai.py    # Google GenAI provider implementation
+│   ├── factory.py          # Provider selection logic
+│   └── protocol.py         # Provider client protocol definitions
+├── prompts/                # Jinja2 prompt templates
+├── root/                   # Additional app-local utilities or placeholder content
+├── static/                 # Static assets served at /static
+│   ├── css/ui.css          # UI styles for rendered responses
+│   └── js/ui.js            # Frontend markdown rendering and form handlers
+├── templates/              # HTML templates (web UI)
+│   └── index.html          # Main UI page for batch/stream/weather forms
+├── tools/                  # Tool implementations
+│   ├── definitions.py      # Tool schema definitions
+│   └── functions.py         # Tool function handlers (weather, etc.)
 
 docs/
 ├── PROVIDER_ARCHITECTURE.md  # Detailed architecture guide
-logs/                         # Application logs directory
-scripts/                      # Utility scripts
+├── SKILL_DEPLOYMENT.md       # Deployment notes
+├── SKILL_PROVIDER_EXTENSION.md  # Provider extension notes
+├── SKILL_TESTING.md          # Testing notes
+logs/                        # Application logs directory
+scripts/                     # Utility scripts
 ```
 
 ## Code Patterns & Conventions
@@ -146,6 +155,8 @@ curl -X POST http://localhost:8000/api/v1/predict/batch \
 - **Database**: No persistent database; API is stateless
 - **CORS**: Not explicitly configured - adjust in `app/main.py` if needed
 - **Jinja2 templates**: Stored in [app/templates/](app/templates/) - used for `/ui` endpoint
+- **Static assets**: CSS/JS are served from [app/static/](app/static/) via FastAPI's `/static` mount in [app/main.py](app/main.py)
+- **Markdown rendering**: The browser UI renders batch/stream/weather responses using Showdown and custom styles from [app/static/js/ui.js](app/static/js/ui.js) and [app/static/css/ui.css](app/static/css/ui.css)
 
 ## Architecture Documentation
 
