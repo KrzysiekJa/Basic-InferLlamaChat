@@ -24,7 +24,7 @@ async def get_llm_client(request: Request) -> LLMClient:
         return g_async
 
     # Default: create an OpenAI Async client instance (no app-level persistence)
-    client = AsyncOpenAI(api_key=settings.llm.API_KEY, base_url=settings.llm.BASE_URL)
+    client = AsyncOpenAI(api_key=settings.llm.api_key, base_url=settings.llm.base_url)
     logger.info("LLM client initialized successfully.")
     return client
 

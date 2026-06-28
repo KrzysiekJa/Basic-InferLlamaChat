@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.requests import Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -9,7 +10,7 @@ from app.logger import init_logging, logger
 from app.rate_limiting import limiter
 from app.config import settings, BASE_PATH
 from app.api import register_routes
-from fastapi.staticfiles import StaticFiles
+from app.middleware import log_requests
 
 
 @asynccontextmanager
@@ -21,7 +22,7 @@ async def lifespan(app: FastAPI):
         try:
             from google import genai
 
-            gclient = genai.Client(api_key=settings.llm.API_KEY)
+            gclient = genai.Client(api_key=settings.llm.api_key)
             # async interface
             app.state.google_genai_client = gclient
             app.state.google_genai_async = getattr(gclient, "aio", None) or gclient
@@ -56,25 +57,31 @@ async def lifespan(app: FastAPI):
 
 
 app: FastAPI = FastAPI(title="Llama4Infer ChatApp", lifespan=lifespan)
+
 init_logging()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.mount("/static", StaticFiles(directory=str(BASE_PATH / "static")), name="static")
 register_routes(app)
 
-
-@app.middleware("http")
-async def log_requests(request: Request, call_next: callable):
-    logger.debug(f"{request.method} {request.url}")
-    logger.debug(f"Headers: {dict(request.headers)}")
-    response = await call_next(request)
-    logger.debug(f"Completed with status {response.status_code}")
-    return response
+# Add CORS middleware FIRST (executes last in chain due to LIFO order)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.rest.ORIGINS,
+    allow_credentials=settings.rest.ALLOWED_CREDENTIALS,
+    allow_methods=settings.rest.METHODS,
+    allow_headers=settings.rest.HEADERS,
+)
+app.middleware("http")(log_requests)
 
 
 if "__main__" == __name__:
     import uvicorn
 
     uvicorn.run(
-        "app.main:app", host="0.0.0.0", port=8000, reload=True, log_level="debug"
+        settings.uvicorn.APP_PATH,
+        host=settings.uvicorn.IP,
+        port=settings.uvicorn.PORT,
+        reload=settings.uvicorn.RELOAD,
+        log_level=settings.uvicorn.LOG_LEVEL,
     )

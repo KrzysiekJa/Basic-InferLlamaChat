@@ -23,8 +23,8 @@ class LLMSettings(BaseSettings):
     OPENAI_API_URL: str
     GOOGLE_API_KEY: str
     GOOGLE_MODEL: str
-    API_KEY: str = ""
-    BASE_URL: str = ""
+    api_key: str = ""
+    base_url: str = ""
 
     class Config:
         env_file = "app/.env"
@@ -37,21 +37,21 @@ class LLMSettings(BaseSettings):
 
         match self.DEFAULT_PROVIDER:
             case "together":
-                self.API_KEY = self.TOGETHER_API_KEY
-                self.BASE_URL = self.TOGETHER_API_URL
+                self.api_key = self.TOGETHER_API_KEY
+                self.base_url = self.TOGETHER_API_URL
             case "openrouter":
-                self.API_KEY = self.OPENROUTER_API_KEY
-                self.BASE_URL = self.OPENROUTER_API_URL
+                self.api_key = self.OPENROUTER_API_KEY
+                self.base_url = self.OPENROUTER_API_URL
             case "openai":
-                self.API_KEY = self.OPENAI_API_KEY
-                self.BASE_URL = self.OPENAI_API_URL
+                self.api_key = self.OPENAI_API_KEY
+                self.base_url = self.OPENAI_API_URL
             case "google":
-                self.API_KEY = self.GOOGLE_API_KEY
+                self.api_key = self.GOOGLE_API_KEY
                 # google-genai client manages endpoints internally
-                self.BASE_URL = ""
+                self.base_url = ""
             case _:
-                self.API_KEY = self.OPENAI_API_KEY
-                self.BASE_URL = self.OPENAI_API_URL
+                self.api_key = self.OPENAI_API_KEY
+                self.base_url = self.OPENAI_API_URL
 
         return self
 
@@ -59,7 +59,7 @@ class LLMSettings(BaseSettings):
 class WeatherAPISettings(BaseSettings):
     OWM_API_KEY: str
     BASE_URL: str
-    MAX_TOKENS: int = os.getenv("OWM_MAX_TOKENS", 128)
+    MAX_TOKENS: int = int(os.getenv("OWM_MAX_TOKENS", "128"))
 
     class Config:
         env_file = "app/.env"
@@ -77,10 +77,37 @@ class ChatSettings(BaseSettings):
         extra = "ignore"
 
 
+class RestSettings(BaseSettings):
+    ORIGINS: list[str]
+    ALLOWED_CREDENTIALS: bool
+    METHODS: list[str]
+    HEADERS: list[str]
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
+
+
+class UvicornSettings(BaseSettings):
+    APP_PATH: str
+    IP: str
+    PORT: int
+    RELOAD: bool
+    LOG_LEVEL: str
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
+
+
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
     weather_api: WeatherAPISettings = WeatherAPISettings()
     chat: ChatSettings = ChatSettings()
+    rest: RestSettings = RestSettings()
+    uvicorn: UvicornSettings = UvicornSettings()
 
     class Config:
         case_sensitive = True
