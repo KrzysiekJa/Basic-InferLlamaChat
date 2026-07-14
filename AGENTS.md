@@ -1,10 +1,14 @@
 # AI Agent Guide - Basic-InferLlamaChat
 
-## Project Overview
+## Purpose
+This repository is a FastAPI LLM inference app. Use this guide to understand the entrypoint, provider abstraction, request flow, and where agent changes should be made.
 
-Basic-InferLlamaChat is a **FastAPI-based LLM inference web application** that abstracts multiple LLM providers (OpenAI, Together, OpenRouter, Google) through a factory pattern. The application provides REST endpoints for batch, streaming, and weather-assisted inference with rate limiting and a small browser UI.
-
-**Key Technologies**: FastAPI, Pydantic, OpenAI async client, Google GenAI client, Slowapi rate limiting, Jinja2 templates, Showdown (client-side Markdown rendering)
+## What matters most
+- App entrypoint: `app/main.py` with the FastAPI app exposed as `app`.
+- Core inference routes: `app/predict/controller.py`.
+- Provider selection: `app/providers/factory.py`, driven by `DEFAULT_PROVIDER` in `app/.env`.
+- Business/service logic: `app/predict/service.py`.
+- Config and environment validation: `app/config.py`.
 
 ## Quick Start Commands
 
@@ -38,7 +42,8 @@ The codebase implements **Factory Design Pattern** to support multiple LLM provi
 2. **Provider Implementations**:
    - [app/providers/responses.py](app/providers/responses.py) - OpenAI Responses API
    - [app/providers/chat.py](app/providers/chat.py) - Chat Completions API (Together, OpenRouter, OpenAI)
-3. **Factory** ([app/providers/factory.py](app/providers/factory.py) - Selects correct provider at runtime
+   - [app/providers/google_genai.py](app/providers/google_genai.py) - Google GenAI implementation
+3. **Factory** ([app/providers/factory.py](app/providers/factory.py)) - Selects correct provider at runtime
 4. **Service Layer** ([app/predict/service.py](app/predict/service.py)) - Provider-agnostic business logic
 5. **API Controller** ([app/predict/controller.py](app/predict/controller.py)) - REST endpoints
 
@@ -146,37 +151,13 @@ curl -X POST http://localhost:8000/api/v1/predict/batch \
 2. Create handler in [app/tools/functions.py](app/tools/functions.py)
 3. Update provider implementations to include new tool in tool calling logic
 
-## Important Notes for AI Agents
+## Notes for agents
+- Do not assume database, cache, or background job infrastructure exists.
+- Respect `DEFAULT_PROVIDER` and use the provider factory instead of hardcoded provider branches.
+- Keep UI changes separate from API behavior; the browser UI is a lightweight demo.
+- Use existing Pydantic schemas and dependency injection instead of adding manual request parsing.
 
-- **Python 3.12.11+** required (check pyproject.toml)
-- **FastAPI app starts** at `app/main.py:app` - entry point for running
-- **Default provider**: Configurable via `.env` DEFAULT_PROVIDER (openai/together/openrouter)
-- **Streaming**: Uses FastAPI's `StreamingResponse` with async generators
-- **Database**: No persistent database; API is stateless
-- **CORS**: Not explicitly configured - adjust in `app/main.py` if needed
-- **Jinja2 templates**: Stored in [app/templates/](app/templates/) - used for `/ui` endpoint
-- **Static assets**: CSS/JS are served from [app/static/](app/static/) via FastAPI's `/static` mount in [app/main.py](app/main.py)
-- **Markdown rendering**: The browser UI renders batch/stream/weather responses using Showdown and custom styles from [app/static/js/ui.js](app/static/js/ui.js) and [app/static/css/ui.css](app/static/css/ui.css)
-
-## Architecture Documentation
-
-For comprehensive details on the provider factory pattern and how provider selection works, see [docs/PROVIDER_ARCHITECTURE.md](docs/PROVIDER_ARCHITECTURE.md).
-
-## Performance Considerations
-
-- Rate limiting prevents abuse: batch/weather (4-6 requests/min per endpoint)
-- Async throughout for concurrent request handling
-- Streaming responses for reduced latency on long outputs
-- Weather tool caching recommended (not currently implemented)
-
-## Next Steps for Extensions
-
-- **Google GenAI Provider Interface**: Add support for Google's Gemini models alongside existing OpenAI/Together/OpenRouter providers
-- **Calculator Tool Implementation**: Extend tool system with calculator function for mathematical inference tasks
-- **Containerization**: Docker/Podman setup with multi-stage builds and production-ready configurations
-- **Redis Caching**: Implement distributed caching for inference results and tool responses
-- Add pytest test suite
-- Implement response caching for weather tool
-- Add metrics/monitoring (Prometheus, etc.)
-- Multi-model support per provider
-- Request/response logging to database
+## References
+- Provider architecture: [docs/PROVIDER_ARCHITECTURE.md](docs/PROVIDER_ARCHITECTURE.md)
+- Testing notes: [docs/SKILL_TESTING.md](docs/SKILL_TESTING.md)
+- Deployment notes: [docs/SKILL_DEPLOYMENT.md](docs/SKILL_DEPLOYMENT.md)
