@@ -33,3 +33,8 @@ class ToolDefinition(Protocol):
     def get_current_weather_from_owm(self) -> dict:
         """Get tool definition for weather function."""
         ...
+
+    @property
+    def get_calculate(self) -> dict:
+        """Get tool definition for calculator function."""
+        ...

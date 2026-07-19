@@ -7,7 +7,11 @@ from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 
 from app.config import settings
-from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
+from app.prompts import (
+    CUSTOM_SYSTEM_PROMPT,
+    OWM_TOOL_SYSTEM_PROMPT,
+    CALCULATOR_TOOL_SYSTEM_PROMPT,
+)
 
 
 async def run_responses_inference_batch(
@@ -128,6 +132,70 @@ async def run_responses_inference_weather(
     return enriched_response.output_text
 
 
+async def run_responses_inference_calculator(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
+) -> str:
+    from app.providers.factory import get_tool_definition
+    from app.tools.functions import calculate
+
+    tool_defs = get_tool_definition()
+    tools = [tool_defs.get_calculate]
+    messages = [
+        {
+            "role": "system",
+            "content": CALCULATOR_TOOL_SYSTEM_PROMPT,
+        },
+        {"role": "user", "content": user_prompt},
+    ]
+
+    response = await llm_client.responses.create(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=settings.weather_api.MAX_TOKENS,
+        tools=tools,
+        tool_choice="required",
+    )
+
+    if not response.output:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
+        )
+
+    for item in response.output:
+        item_name = getattr(item, "name", None)
+
+        if item.type != "function_call" or item_name != "calculate":
+            continue
+
+        args = json.loads(item.arguments)
+        result = calculate(
+            args.get("operation"),
+            float(args.get("x", 0)),
+            float(args.get("y", 0)),
+        )
+        messages.append(
+            {
+                "call_id": item.call_id,
+                "type": "function_call_output",
+                "name": item_name,
+                "output": str(result),
+            }
+        )
+
+    enriched_response = await llm_client.responses.create(
+        input=messages,
+        model=settings.llm.MODEL,
+        max_output_tokens=max_tokens,
+    )
+
+    if not enriched_response.output_text:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
+        )
+
+    return enriched_response.output_text
+
+
 async def stream_generator_responses(
     response: AsyncGenerator,
 ) -> AsyncGenerator[str, None]:
@@ -167,5 +235,33 @@ class ResponsesToolDefinition:
                     "unit_sys": {"type": "string", "enum": ["metric", "imperial"]},
                 },
                 "required": ["location"],
+            },
+        }
+
+    @property
+    def get_calculate(self) -> dict:
+        """Get tool definition for calculator function (Responses API format)."""
+        return {
+            "type": "function",
+            "name": "calculate",
+            "description": "Perform a basic arithmetic operation on two numbers.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "operation": {
+                        "type": "string",
+                        "enum": ["add", "subtract", "multiply", "divide"],
+                        "description": "The arithmetic operation to perform.",
+                    },
+                    "x": {
+                        "type": "number",
+                        "description": "The first operand.",
+                    },
+                    "y": {
+                        "type": "number",
+                        "description": "The second operand.",
+                    },
+                },
+                "required": ["operation", "x", "y"],
             },
         }

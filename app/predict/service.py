@@ -5,6 +5,7 @@ from app.providers.factory import (
     get_inference_callable,
     get_stream_callable,
     get_weather_callable,
+    get_calculator_callable,
 )
 
 
@@ -33,4 +34,12 @@ async def get_inference_weather(
 ) -> str:
     """Perform inference with weather tool using the configured provider."""
     func = get_weather_callable()
+    return await func(user_prompt, max_tokens, llm_client)
+
+
+async def get_inference_calculator(
+    user_prompt: str, max_tokens: int, llm_client: LLMClient | None = None
+) -> str:
+    """Perform inference with calculator tool using the configured provider."""
+    func = get_calculator_callable()
     return await func(user_prompt, max_tokens, llm_client)

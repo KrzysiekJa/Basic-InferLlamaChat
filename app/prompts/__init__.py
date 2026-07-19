@@ -8,5 +8,12 @@ with open(PROMPT_DIR / "custom_system_prompt.md.j2", "r") as file:
 with open(PROMPT_DIR / "owm_tool_system_prompt.md.j2", "r") as file:
     OWM_TOOL_SYSTEM_PROMPT = file.read()
 
-__all__ = ["CUSTOM_SYSTEM_PROMPT", "OWM_TOOL_SYSTEM_PROMPT"]
+with open(PROMPT_DIR / "calculator_tool_system_prompt.md.j2", "r") as file:
+    CALCULATOR_TOOL_SYSTEM_PROMPT = file.read()
+
+__all__ = [
+    "CUSTOM_SYSTEM_PROMPT",
+    "OWM_TOOL_SYSTEM_PROMPT",
+    "CALCULATOR_TOOL_SYSTEM_PROMPT",
+]
 

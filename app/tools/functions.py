@@ -4,6 +4,57 @@ import requests
 from app.config import settings
 
 
+def calculate(operation: str, x: float, y: float) -> str:
+    """Perform a basic arithmetic operation on two numbers.
+
+    Args:
+        operation (str): One of "add", "subtract", "multiply", "divide".
+        x (float): The first operand.
+        y (float): The second operand.
+
+    Returns:
+        str: A JSON string containing the operation, operands, and result.
+             For division by zero, returns a JSON error string.
+    """
+    operation = (operation or "").lower()
+
+    if operation == "add":
+        result = x + y
+    elif operation == "subtract":
+        result = x - y
+    elif operation == "multiply":
+        result = x * y
+    elif operation == "divide":
+        if y == 0:
+            return json.dumps(
+                {
+                    "operation": operation,
+                    "x": x,
+                    "y": y,
+                    "error": "division by zero",
+                }
+            )
+        result = x / y
+    else:
+        return json.dumps(
+            {
+                "operation": operation,
+                "x": x,
+                "y": y,
+                "error": f"unsupported operation: {operation}",
+            }
+        )
+
+    return json.dumps(
+        {
+            "operation": operation,
+            "x": x,
+            "y": y,
+            "result": result,
+        }
+    )
+
+
 def get_current_weather_from_owm(location: str, unit_sys: str = "metric") -> str:
     """Get current weather information for a given location.
 

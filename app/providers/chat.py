@@ -7,7 +7,11 @@ from fastapi.responses import StreamingResponse
 from openai import AsyncOpenAI
 
 from app.config import settings
-from app.prompts import CUSTOM_SYSTEM_PROMPT, OWM_TOOL_SYSTEM_PROMPT
+from app.prompts import (
+    CUSTOM_SYSTEM_PROMPT,
+    OWM_TOOL_SYSTEM_PROMPT,
+    CALCULATOR_TOOL_SYSTEM_PROMPT,
+)
 
 
 async def run_chat_inference_batch(
@@ -124,6 +128,69 @@ async def run_chat_inference_weather(
     return enriched_response.choices[0].message.content
 
 
+async def run_chat_inference_calculator(
+    user_prompt: str, max_tokens: int, llm_client: AsyncOpenAI
+) -> str:
+    from app.providers.factory import get_tool_definition
+    from app.tools.functions import calculate
+
+    tool_defs = get_tool_definition()
+    tools = [tool_defs.get_calculate]
+    messages = [
+        {
+            "role": "system",
+            "content": CALCULATOR_TOOL_SYSTEM_PROMPT,
+        },
+        {"role": "user", "content": user_prompt},
+    ]
+
+    chat_completion = await llm_client.chat.completions.create(
+        messages=messages,
+        model=settings.llm.MODEL,
+        max_completion_tokens=settings.weather_api.MAX_TOKENS,
+        tools=tools,
+        tool_choice="required",
+    )
+    tool_calls = chat_completion.choices[0].message.tool_calls
+
+    if not tool_calls:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Response output is empty."
+        )
+
+    for tool_call in tool_calls:
+        function_name = tool_call.function.name
+        function_args = json.loads(tool_call.function.arguments)
+
+        if function_name == "calculate":
+            function_response = calculate(
+                function_args.get("operation"),
+                float(function_args.get("x", 0)),
+                float(function_args.get("y", 0)),
+            )
+            messages.append(
+                {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            )
+
+    enriched_response = await llm_client.chat.completions.create(
+        messages=messages,
+        model=settings.llm.MODEL,
+        max_completion_tokens=max_tokens,
+    )
+
+    if not enriched_response.choices[0].message.content:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Enriched response is empty."
+        )
+
+    return enriched_response.choices[0].message.content
+
+
 async def stream_generator_chat(response: AsyncGenerator) -> AsyncGenerator[str, None]:
     """Stream generator for chat completions API."""
     tokens_count = 0
@@ -162,6 +229,36 @@ class ChatToolDefinition:
                         "unit_sys": {"type": "string", "enum": ["metric", "imperial"]},
                     },
                     "required": ["location"],
+                },
+            },
+        }
+
+    @property
+    def get_calculate(self) -> dict:
+        """Get tool definition for calculator function (Chat API format)."""
+        return {
+            "type": "function",
+            "function": {
+                "name": "calculate",
+                "description": "Perform a basic arithmetic operation on two numbers.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "operation": {
+                            "type": "string",
+                            "enum": ["add", "subtract", "multiply", "divide"],
+                            "description": "The arithmetic operation to perform.",
+                        },
+                        "x": {
+                            "type": "number",
+                            "description": "The first operand.",
+                        },
+                        "y": {
+                            "type": "number",
+                            "description": "The second operand.",
+                        },
+                    },
+                    "required": ["operation", "x", "y"],
                 },
             },
         }

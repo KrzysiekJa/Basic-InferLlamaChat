@@ -17,6 +17,7 @@ from app.providers.factory import get_tool_definition
 _tool_def = get_tool_definition()
 
 # Tool schemas
-GET_CURRENT_WEATHER_FROM_OWM = _tool_def.get_current_weather_from_owm()
+GET_CURRENT_WEATHER_FROM_OWM = _tool_def.get_current_weather_from_owm
+CALCULATE = _tool_def.get_calculate
 
-__all__ = ["GET_CURRENT_WEATHER_FROM_OWM"]
+__all__ = ["GET_CURRENT_WEATHER_FROM_OWM", "CALCULATE"]

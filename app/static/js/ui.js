@@ -100,8 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const batchForm = document.getElementById('batch-chat-form')
     const streamForm = document.getElementById('stream-chat-form')
     const weatherForm = document.getElementById('weather-chat-form')
+    const calculatorForm = document.getElementById('calculator-chat-form')
 
     if (batchForm) batchForm.addEventListener('submit', (e) => { handleSubmit(e) })
     if (streamForm) streamForm.addEventListener('submit', (e) => { handleSubmit(e, 'stream') })
     if (weatherForm) weatherForm.addEventListener('submit', (e) => { handleSubmit(e, 'weather') })
+    if (calculatorForm) calculatorForm.addEventListener('submit', (e) => { handleSubmit(e, 'calculator') })
 })
