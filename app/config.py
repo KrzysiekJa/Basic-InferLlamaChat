@@ -67,6 +67,15 @@ class WeatherAPISettings(BaseSettings):
         extra = "ignore"
 
 
+class CalculatorSettings(BaseSettings):
+    MAX_TOKENS: int
+
+    class Config:
+        env_file = "app/.env"
+        case_sensitive = True
+        extra = "ignore"
+
+
 class ChatSettings(BaseSettings):
     OUTPUT_MIN_TOKENS: int
     OUTPUT_MAX_TOKENS: int
@@ -105,6 +114,7 @@ class UvicornSettings(BaseSettings):
 class Settings(BaseSettings):
     llm: LLMSettings = LLMSettings()
     weather_api: WeatherAPISettings = WeatherAPISettings()
+    calculator: CalculatorSettings = CalculatorSettings()
     chat: ChatSettings = ChatSettings()
     rest: RestSettings = RestSettings()
     uvicorn: UvicornSettings = UvicornSettings()

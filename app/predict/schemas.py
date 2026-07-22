@@ -15,4 +15,4 @@ class WeatherInput(BaseModel):
 
 class CalculatorInput(BaseModel):
     user_prompt: str = Field("What is 1234 + 5678?")
-    max_tokens: int = Field(settings.weather_api.MAX_TOKENS)
+    max_tokens: int = Field(settings.calculator.MAX_TOKENS)
